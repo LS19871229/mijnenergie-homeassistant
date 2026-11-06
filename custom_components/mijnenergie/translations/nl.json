@@ -1,0 +1,211 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Koppelen met Mijn Energie",
+        "description": "Maak in het beheer van EL trading bij de woning een koppelcode aan en typ die hieronder in. De code is 1 uur geldig.",
+        "data": {
+          "code": "Koppelcode",
+          "url": "Portaaladres"
+        },
+        "data_description": {
+          "code": "6 cijfers, bijvoorbeeld 482913. Spaties mogen.",
+          "url": "Alleen wijzigen voor een testomgeving."
+        }
+      },
+      "p1": {
+        "title": "P1-meter",
+        "description": "Gekoppeld aan **{home}**.\n\nGevonden P1-meter: **{device}**. Controleer de sensoren hieronder; de actuele waarde staat in de keuzelijst.",
+        "data": {
+          "p1_power": "Actueel vermogen",
+          "p1_import": "Totaal afgenomen",
+          "p1_export": "Totaal teruggeleverd",
+          "gas": "Gas (optioneel)"
+        },
+        "data_description": {
+          "p1_power": "Netto vermogen van de P1-meter: positief = afname, negatief = teruglevering.",
+          "p1_import": "Meterstand afname (T1 + T2), in kWh.",
+          "p1_export": "Meterstand teruglevering (T1 + T2), in kWh.",
+          "gas": "Meterstand gas in m³. Leeg laten als er geen gas is."
+        }
+      },
+      "inverter": {
+        "title": "Omvormer",
+        "description": "Kies de sensoren van de omvormer. We hebben al een voorstel gedaan op basis van de sensoren in Home Assistant.",
+        "data": {
+          "pv_power": "Actueel vermogen",
+          "pv_energy": "Totale opbrengst"
+        },
+        "data_description": {
+          "pv_power": "Wat de omvormer nu levert. W of kW mag; we rekenen zelf om.",
+          "pv_energy": "Totale opbrengst sinds installatie (niet van vandaag of dit jaar)."
+        }
+      },
+      "battery": {
+        "title": "Thuisbatterij (optioneel)",
+        "description": "Heeft deze woning een thuisbatterij? Kies dan het vermogen en het laadpercentage. Anders laat je alles leeg.",
+        "data": {
+          "battery_power": "Vermogen batterij",
+          "battery_soc": "Laadpercentage",
+          "battery_invert": "Teken omdraaien"
+        },
+        "data_description": {
+          "battery_power": "Positief = laden, negatief = ontladen.",
+          "battery_soc": "Hoe vol de batterij is, in %.",
+          "battery_invert": "Aanzetten als deze sensor bij ontladen een positief getal geeft."
+        }
+      },
+      "finish": {
+        "title": "Gelukt",
+        "description": "Gekoppeld met **{home}**. De eerste meting is verstuurd en de woning staat nu op Online in het beheer.\n\nKlik op Verzenden om af te ronden."
+      },
+      "finish_failed": {
+        "title": "Gekoppeld, maar nog geen meting verstuurd",
+        "description": "Gekoppeld met **{home}**, maar de testmeting kwam niet aan bij het portaal. Waarschijnlijk is er even geen internetverbinding.\n\nDe integratie blijft het elke minuut proberen; metingen worden bewaard tot het lukt. Klik op Verzenden om af te ronden."
+      },
+      "reauth_confirm": {
+        "title": "Opnieuw koppelen",
+        "description": "De koppeling met **{home}** moet vernieuwd worden. Maak in het beheer bij deze woning een nieuwe koppelcode en typ die hieronder in. Metingen die nog wachten, gaan niet verloren.",
+        "data": {
+          "code": "Koppelcode"
+        },
+        "data_description": {
+          "code": "6 cijfers, bijvoorbeeld 482913. Spaties mogen."
+        }
+      }
+    },
+    "error": {
+      "code_format": "Een koppelcode bestaat uit 6 cijfers.",
+      "invalid_code": "Deze code is verlopen of al gebruikt. Maak in het beheer een nieuwe code.",
+      "too_many_attempts": "Te veel pogingen. Wacht 15 minuten en probeer het opnieuw.",
+      "cannot_connect": "Het portaal is niet bereikbaar. Controleer de internetverbinding van de HA Green.",
+      "unknown": "Er ging iets onverwachts mis. Kijk in het logboek van Home Assistant.",
+      "required": "Dit veld is verplicht.",
+      "entity_not_found": "Deze sensor bestaat niet (meer).",
+      "wrong_unit_power": "Deze sensor is geen vermogen (verwacht W of kW).",
+      "wrong_unit_energy": "Deze sensor is geen energie (verwacht Wh, kWh of MWh).",
+      "wrong_unit_gas": "Deze sensor is geen gasmeter (verwacht m³).",
+      "wrong_unit_percent": "Deze sensor is geen percentage.",
+      "not_a_total": "Dit is een momentwaarde. Kies een sensor met een oplopende meterstand.",
+      "same_entity": "Afname en teruglevering moeten verschillende sensoren zijn."
+    },
+    "abort": {
+      "already_configured": "Deze woning is al gekoppeld op deze Home Assistant. De koppeling is vernieuwd.",
+      "single_instance_allowed": "Mijn Energie is al gekoppeld. Gebruik Configureren bij de integratie om iets te wijzigen.",
+      "reauth_successful": "Opnieuw gekoppeld. Wachtende metingen worden nu verstuurd.",
+      "wrong_home": "Deze code hoort bij een andere woning dan {home}. Maak de code aan bij de juiste woning."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Mijn Energie",
+        "description": "Wat wil je wijzigen?",
+        "menu_options": {
+          "p1": "P1-meter en gas",
+          "inverter": "Omvormer",
+          "battery": "Thuisbatterij",
+          "relink": "Opnieuw koppelen (nieuwe koppelcode)"
+        }
+      },
+      "p1": {
+        "title": "P1-meter",
+        "data": {
+          "p1_power": "Actueel vermogen",
+          "p1_import": "Totaal afgenomen",
+          "p1_export": "Totaal teruggeleverd",
+          "gas": "Gas (optioneel)"
+        },
+        "data_description": {
+          "p1_power": "Netto vermogen van de P1-meter: positief = afname, negatief = teruglevering.",
+          "p1_import": "Meterstand afname (T1 + T2), in kWh.",
+          "p1_export": "Meterstand teruglevering (T1 + T2), in kWh.",
+          "gas": "Meterstand gas in m³. Leeg laten als er geen gas is."
+        }
+      },
+      "inverter": {
+        "title": "Omvormer",
+        "description": "Kies de sensoren van de omvormer. Laat leeg als er (nog) geen zonnepanelen zijn.",
+        "data": {
+          "pv_power": "Actueel vermogen",
+          "pv_energy": "Totale opbrengst"
+        },
+        "data_description": {
+          "pv_power": "Wat de omvormer nu levert. W of kW mag; we rekenen zelf om.",
+          "pv_energy": "Totale opbrengst sinds installatie (niet van vandaag of dit jaar)."
+        }
+      },
+      "battery": {
+        "title": "Thuisbatterij (optioneel)",
+        "data": {
+          "battery_power": "Vermogen batterij",
+          "battery_soc": "Laadpercentage",
+          "battery_invert": "Teken omdraaien"
+        },
+        "data_description": {
+          "battery_power": "Positief = laden, negatief = ontladen.",
+          "battery_soc": "Hoe vol de batterij is, in %.",
+          "battery_invert": "Aanzetten als deze sensor bij ontladen een positief getal geeft."
+        }
+      }
+    },
+    "error": {
+      "code_format": "Een koppelcode bestaat uit 6 cijfers.",
+      "invalid_code": "Deze code is verlopen of al gebruikt. Maak in het beheer een nieuwe code.",
+      "too_many_attempts": "Te veel pogingen. Wacht 15 minuten en probeer het opnieuw.",
+      "cannot_connect": "Het portaal is niet bereikbaar. Controleer de internetverbinding van de HA Green.",
+      "unknown": "Er ging iets onverwachts mis. Kijk in het logboek van Home Assistant.",
+      "required": "Dit veld is verplicht.",
+      "entity_not_found": "Deze sensor bestaat niet (meer).",
+      "wrong_unit_power": "Deze sensor is geen vermogen (verwacht W of kW).",
+      "wrong_unit_energy": "Deze sensor is geen energie (verwacht Wh, kWh of MWh).",
+      "wrong_unit_gas": "Deze sensor is geen gasmeter (verwacht m³).",
+      "wrong_unit_percent": "Deze sensor is geen percentage.",
+      "not_a_total": "Dit is een momentwaarde. Kies een sensor met een oplopende meterstand.",
+      "same_entity": "Afname en teruglevering moeten verschillende sensoren zijn."
+    },
+    "abort": {
+      "relink_started": "Er staat nu een melding 'Opnieuw koppelen' bij Instellingen. Open die en typ de nieuwe koppelcode in."
+    }
+  },
+  "issues": {
+    "entity_missing": {
+      "title": "Mijn Energie: sensor niet gevonden",
+      "description": "De sensor **{entity}** bestaat niet meer, dus deze meting ontbreekt voor {home}.\n\nKies een andere sensor via Instellingen › Apparaten en diensten › Mijn Energie › Configureren."
+    },
+    "no_connection": {
+      "title": "Mijn Energie: geen verbinding",
+      "description": "Sinds {since} kan de HA Green het portaal niet bereiken. Er wachten {queue} metingen; die worden automatisch verstuurd zodra er weer verbinding is (maximaal 7 dagen).\n\nControleer de internetverbinding."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "starting": "Opstarten",
+          "connected": "Verbonden",
+          "offline": "Geen verbinding",
+          "auth_failed": "Opnieuw koppelen nodig"
+        },
+        "state_attributes": {
+          "last_error": {
+            "name": "Laatste fout"
+          },
+          "offline_since": {
+            "name": "Geen verbinding sinds"
+          }
+        }
+      },
+      "last_sent": {
+        "name": "Laatste verzending"
+      },
+      "queue": {
+        "name": "Wachtende metingen"
+      },
+      "home": {
+        "name": "Gekoppelde woning"
+      }
+    }
+  }
+}

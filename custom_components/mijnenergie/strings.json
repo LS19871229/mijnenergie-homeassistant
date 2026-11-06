@@ -1,0 +1,211 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Link with Mijn Energie",
+        "description": "Create a pairing code for the home in the EL trading admin and enter it below. The code is valid for 1 hour.",
+        "data": {
+          "code": "Pairing code",
+          "url": "Portal address"
+        },
+        "data_description": {
+          "code": "6 digits, for example 482913. Spaces are allowed.",
+          "url": "Only change this for a test environment."
+        }
+      },
+      "p1": {
+        "title": "P1 meter",
+        "description": "Linked to **{home}**.\n\nP1 meter found: **{device}**. Check the sensors below; the current value is shown in the picker.",
+        "data": {
+          "p1_power": "Current power",
+          "p1_import": "Total imported",
+          "p1_export": "Total exported",
+          "gas": "Gas (optional)"
+        },
+        "data_description": {
+          "p1_power": "Net power of the P1 meter: positive = import, negative = export.",
+          "p1_import": "Import meter reading (T1 + T2), in kWh.",
+          "p1_export": "Export meter reading (T1 + T2), in kWh.",
+          "gas": "Gas meter reading in m³. Leave empty if there is no gas."
+        }
+      },
+      "inverter": {
+        "title": "Inverter",
+        "description": "Choose the inverter sensors. We already suggested sensors based on what is in Home Assistant.",
+        "data": {
+          "pv_power": "Current power",
+          "pv_energy": "Total yield"
+        },
+        "data_description": {
+          "pv_power": "What the inverter delivers now. W or kW; we convert.",
+          "pv_energy": "Total yield since installation (not today or this year)."
+        }
+      },
+      "battery": {
+        "title": "Home battery (optional)",
+        "description": "Does this home have a battery? Then choose its power and state of charge. Otherwise leave everything empty.",
+        "data": {
+          "battery_power": "Battery power",
+          "battery_soc": "State of charge",
+          "battery_invert": "Invert sign"
+        },
+        "data_description": {
+          "battery_power": "Positive = charging, negative = discharging.",
+          "battery_soc": "How full the battery is, in %.",
+          "battery_invert": "Turn on if this sensor shows a positive number while discharging."
+        }
+      },
+      "finish": {
+        "title": "Done",
+        "description": "Linked with **{home}**. The first measurement was sent and the home is now Online in the admin.\n\nClick Submit to finish."
+      },
+      "finish_failed": {
+        "title": "Linked, but no measurement sent yet",
+        "description": "Linked with **{home}**, but the test measurement did not reach the portal. The internet connection is probably down.\n\nThe integration keeps trying every minute and stores measurements until it succeeds. Click Submit to finish."
+      },
+      "reauth_confirm": {
+        "title": "Link again",
+        "description": "The link with **{home}** needs to be renewed. Create a new pairing code for this home in the admin and enter it below. Queued measurements are kept.",
+        "data": {
+          "code": "Pairing code"
+        },
+        "data_description": {
+          "code": "6 digits, for example 482913. Spaces are allowed."
+        }
+      }
+    },
+    "error": {
+      "code_format": "A pairing code has 6 digits.",
+      "invalid_code": "This code has expired or was already used. Create a new code in the admin.",
+      "too_many_attempts": "Too many attempts. Wait 15 minutes and try again.",
+      "cannot_connect": "The portal cannot be reached. Check the internet connection of the HA Green.",
+      "unknown": "Something unexpected went wrong. Check the Home Assistant log.",
+      "required": "This field is required.",
+      "entity_not_found": "This sensor does not exist (anymore).",
+      "wrong_unit_power": "This sensor is not a power sensor (expected W or kW).",
+      "wrong_unit_energy": "This sensor is not an energy sensor (expected Wh, kWh or MWh).",
+      "wrong_unit_gas": "This sensor is not a gas meter (expected m³).",
+      "wrong_unit_percent": "This sensor is not a percentage.",
+      "not_a_total": "This is an instantaneous value. Choose a sensor with an increasing meter reading.",
+      "same_entity": "Import and export must be different sensors."
+    },
+    "abort": {
+      "already_configured": "This home is already linked on this Home Assistant. The link was renewed.",
+      "single_instance_allowed": "Mijn Energie is already linked. Use Configure on the integration to change something.",
+      "reauth_successful": "Linked again. Queued measurements are being sent now.",
+      "wrong_home": "This code belongs to a different home than {home}. Create the code for the right home."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Mijn Energie",
+        "description": "What do you want to change?",
+        "menu_options": {
+          "p1": "P1 meter and gas",
+          "inverter": "Inverter",
+          "battery": "Home battery",
+          "relink": "Link again (new pairing code)"
+        }
+      },
+      "p1": {
+        "title": "P1 meter",
+        "data": {
+          "p1_power": "Current power",
+          "p1_import": "Total imported",
+          "p1_export": "Total exported",
+          "gas": "Gas (optional)"
+        },
+        "data_description": {
+          "p1_power": "Net power of the P1 meter: positive = import, negative = export.",
+          "p1_import": "Import meter reading (T1 + T2), in kWh.",
+          "p1_export": "Export meter reading (T1 + T2), in kWh.",
+          "gas": "Gas meter reading in m³. Leave empty if there is no gas."
+        }
+      },
+      "inverter": {
+        "title": "Inverter",
+        "description": "Choose the inverter sensors. Leave empty if there are no solar panels (yet).",
+        "data": {
+          "pv_power": "Current power",
+          "pv_energy": "Total yield"
+        },
+        "data_description": {
+          "pv_power": "What the inverter delivers now. W or kW; we convert.",
+          "pv_energy": "Total yield since installation (not today or this year)."
+        }
+      },
+      "battery": {
+        "title": "Home battery (optional)",
+        "data": {
+          "battery_power": "Battery power",
+          "battery_soc": "State of charge",
+          "battery_invert": "Invert sign"
+        },
+        "data_description": {
+          "battery_power": "Positive = charging, negative = discharging.",
+          "battery_soc": "How full the battery is, in %.",
+          "battery_invert": "Turn on if this sensor shows a positive number while discharging."
+        }
+      }
+    },
+    "error": {
+      "code_format": "A pairing code has 6 digits.",
+      "invalid_code": "This code has expired or was already used. Create a new code in the admin.",
+      "too_many_attempts": "Too many attempts. Wait 15 minutes and try again.",
+      "cannot_connect": "The portal cannot be reached. Check the internet connection of the HA Green.",
+      "unknown": "Something unexpected went wrong. Check the Home Assistant log.",
+      "required": "This field is required.",
+      "entity_not_found": "This sensor does not exist (anymore).",
+      "wrong_unit_power": "This sensor is not a power sensor (expected W or kW).",
+      "wrong_unit_energy": "This sensor is not an energy sensor (expected Wh, kWh or MWh).",
+      "wrong_unit_gas": "This sensor is not a gas meter (expected m³).",
+      "wrong_unit_percent": "This sensor is not a percentage.",
+      "not_a_total": "This is an instantaneous value. Choose a sensor with an increasing meter reading.",
+      "same_entity": "Import and export must be different sensors."
+    },
+    "abort": {
+      "relink_started": "A 'Link again' notice is now shown under Settings. Open it and enter the new pairing code."
+    }
+  },
+  "issues": {
+    "entity_missing": {
+      "title": "Mijn Energie: sensor not found",
+      "description": "The sensor **{entity}** no longer exists, so this measurement is missing for {home}.\n\nChoose another sensor via Settings › Devices & services › Mijn Energie › Configure."
+    },
+    "no_connection": {
+      "title": "Mijn Energie: no connection",
+      "description": "Since {since} the HA Green cannot reach the portal. {queue} measurements are waiting; they are sent automatically once the connection is back (up to 7 days).\n\nCheck the internet connection."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "starting": "Starting",
+          "connected": "Connected",
+          "offline": "No connection",
+          "auth_failed": "Link again"
+        },
+        "state_attributes": {
+          "last_error": {
+            "name": "Last error"
+          },
+          "offline_since": {
+            "name": "Offline since"
+          }
+        }
+      },
+      "last_sent": {
+        "name": "Last sent"
+      },
+      "queue": {
+        "name": "Queued measurements"
+      },
+      "home": {
+        "name": "Linked home"
+      }
+    }
+  }
+}

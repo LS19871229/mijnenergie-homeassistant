@@ -1,0 +1,14 @@
+{
+  "domain": "mijnenergie",
+  "name": "Mijn Energie",
+  "codeowners": ["@LS19871229"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/LS19871229/mijnenergie-homeassistant",
+  "integration_type": "service",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/LS19871229/mijnenergie-homeassistant/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "1.0.0"
+}

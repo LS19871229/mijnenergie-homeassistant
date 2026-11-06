@@ -1,0 +1,18 @@
+# Controleert bij een nieuwe release dat de tag gelijk is aan de versie in manifest.json.
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  versie:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag en manifest gelijk?
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          MANIFEST=$(python -c "import json;print(json.load(open('custom_components/mijnenergie/manifest.json'))['version'])")
+          echo "tag=$TAG manifest=$MANIFEST"
+          test "$TAG" = "$MANIFEST" || { echo "::error::Tag $TAG is niet gelijk aan manifest-versie $MANIFEST"; exit 1; }
