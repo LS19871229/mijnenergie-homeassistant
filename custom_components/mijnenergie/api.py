@@ -84,7 +84,7 @@ class MijnEnergieApi:
         raise CannotConnect(f"Koppelen mislukt (HTTP {status}, {error})")
 
     async def send(self, measurements: list[dict[str, Any]], meta: dict[str, Any]) -> dict[str, Any]:
-        """Metingen versturen. Geeft {'accepted': n, 'rejected': n}."""
+        """Metingen versturen. Geeft {'accepted', 'rejected', 'config_rev' [, 'config']}."""
         status, data = await self._post(
             "api/ingest.php", {"measurements": measurements, "meta": meta}, auth=True
         )
@@ -93,3 +93,21 @@ class MijnEnergieApi:
         if status == 200 and data.get("ok"):
             return data
         raise CannotConnect(f"Versturen mislukt (HTTP {status}, {data.get('error')})")
+
+    async def push_config(self, config: dict[str, Any]) -> int:
+        """Sensorkeuze naar het portaal sturen (nieuwe versie). Geeft het versienummer."""
+        status, data = await self._post("api/sensors.php", {"config": config}, auth=True)
+        if status == 401:
+            raise InvalidAuth
+        if status == 200 and data.get("ok") and isinstance(data.get("config_rev"), int):
+            return data["config_rev"]
+        raise CannotConnect(f"Sensorkeuze versturen mislukt (HTTP {status}, {data.get('error')})")
+
+    async def send_inventory(self, entities: list[dict[str, Any]]) -> int:
+        """Lijst met bruikbare sensoren naar het portaal sturen (voor de keuzelijsten in het beheer)."""
+        status, data = await self._post("api/inventory.php", {"entities": entities}, auth=True)
+        if status == 401:
+            raise InvalidAuth
+        if status == 200 and data.get("ok"):
+            return int(data.get("count", 0))
+        raise CannotConnect(f"Sensorlijst versturen mislukt (HTTP {status}, {data.get('error')})")

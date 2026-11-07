@@ -8,7 +8,8 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
 from . import MijnEnergieConfigEntry
-from .const import CONF_TOKEN, SENSOR_KINDS
+from .const import CONF_TOKEN
+from .measure import config_entities
 
 TO_REDACT = {CONF_TOKEN}
 
@@ -16,19 +17,20 @@ TO_REDACT = {CONF_TOKEN}
 async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: MijnEnergieConfigEntry) -> dict[str, Any]:
     sender = entry.runtime_data
     sensors = {}
-    for key, entity_id in entry.options.items():
-        if key in SENSOR_KINDS and entity_id:
-            st = hass.states.get(entity_id)
-            sensors[key] = {
-                "entity_id": entity_id,
-                "state": st.state if st else None,
-                "unit": st.attributes.get("unit_of_measurement") if st else None,
-                "device_class": st.attributes.get("device_class") if st else None,
-                "state_class": st.attributes.get("state_class") if st else None,
-            }
+    for field, entity_id in config_entities(sender.config):
+        st = hass.states.get(entity_id)
+        sensors[field] = {
+            "entity_id": entity_id,
+            "state": st.state if st else None,
+            "unit": st.attributes.get("unit_of_measurement") if st else None,
+            "device_class": st.attributes.get("device_class") if st else None,
+            "state_class": st.attributes.get("state_class") if st else None,
+        }
     return {
         "entry": {"data": async_redact_data(dict(entry.data), TO_REDACT), "options": dict(entry.options)},
         "version": sender.version,
+        "config_rev": sender.config_rev,
+        "last_inventory": sender.last_inventory.isoformat() if sender.last_inventory else None,
         "status": sender.status,
         "last_sent": sender.last_sent.isoformat() if sender.last_sent else None,
         "last_error": sender.last_error,

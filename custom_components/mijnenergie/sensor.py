@@ -90,7 +90,7 @@ class MijnEnergieSensor(SensorEntity):
             return None
         s = self._sender
         since: datetime | None = s.offline_since
-        return {"last_error": s.last_error, "offline_since": since.isoformat() if since else None}
+        return {"last_error": s.last_error, "offline_since": since.isoformat() if since else None, "config_rev": s.config_rev}
 
     async def async_added_to_hass(self) -> None:
         self.async_on_remove(

@@ -13,55 +13,120 @@
           "url": "Alleen wijzigen voor een testomgeving."
         }
       },
+      "installation": {
+        "title": "Installatie",
+        "description": "Welke installatie heeft deze woning? De volgende stappen passen zich daaraan aan. Je kunt alles later ook in het portaal instellen.",
+        "data": {
+          "installation": "Installatie"
+        }
+      },
       "p1": {
         "title": "P1-meter",
-        "description": "Gekoppeld aan **{home}**.\n\nGevonden P1-meter: **{device}**. Controleer de sensoren hieronder; de actuele waarde staat in de keuzelijst.",
+        "description": "Gekoppeld aan **{home}**.\n\nGevonden P1-meter: **{device}**. Controleer de sensoren; de actuele waarde staat in de keuzelijst.",
         "data": {
-          "p1_power": "Actueel vermogen",
+          "p1_power": "Netto vermogen",
           "p1_import": "Totaal afgenomen",
           "p1_export": "Totaal teruggeleverd",
           "gas": "Gas (optioneel)"
         },
         "data_description": {
-          "p1_power": "Netto vermogen van de P1-meter: positief = afname, negatief = teruglevering.",
+          "p1_power": "Positief = afname, negatief = teruglevering.",
           "p1_import": "Meterstand afname (T1 + T2), in kWh.",
           "p1_export": "Meterstand teruglevering (T1 + T2), in kWh.",
           "gas": "Meterstand gas in m³. Leeg laten als er geen gas is."
         }
       },
-      "inverter": {
-        "title": "Omvormer",
-        "description": "Kies de sensoren van de omvormer. We hebben al een voorstel gedaan op basis van de sensoren in Home Assistant.",
+      "pv": {
+        "title": "Zonnepanelen",
+        "description": "Kies het vermogen en de totale opbrengst van de omvormer. We hebben al een voorstel gedaan.",
         "data": {
-          "pv_power": "Actueel vermogen",
-          "pv_energy": "Totale opbrengst"
+          "pv_power_1": "PV-vermogen",
+          "pv_energy_1": "PV-opbrengst totaal"
         },
         "data_description": {
-          "pv_power": "Wat de omvormer nu levert. W of kW mag; we rekenen zelf om.",
-          "pv_energy": "Totale opbrengst sinds installatie (niet van vandaag of dit jaar)."
+          "pv_power_1": "Wat de panelen nu opwekken. W of kW; we rekenen zelf om.",
+          "pv_energy_1": "Totale opbrengst sinds installatie (niet van vandaag of dit jaar)."
+        }
+      },
+      "pv_hybrid": {
+        "title": "Zonnepanelen",
+        "description": "Bij een hybride omvormer is de **uitgang** van de omvormer niet hetzelfde als wat de panelen opwekken: de batterij zit ertussen. Kies daarom het **PV-vermogen** (vaak 'input power' of 'PV power') en de **PV-opbrengst** van de panelen.",
+        "data": {
+          "pv_power_1": "PV-vermogen",
+          "pv_energy_1": "PV-opbrengst totaal"
+        },
+        "data_description": {
+          "pv_power_1": "Vermogen van de panelen (input/DC), niet de uitgang van de omvormer.",
+          "pv_energy_1": "Totale opbrengst van de panelen sinds installatie, niet de totale uitgang van de omvormer."
+        }
+      },
+      "pv_multi": {
+        "title": "Zonnepanelen (meerdere omvormers)",
+        "description": "Vul per omvormer het PV-vermogen en de totale opbrengst in. We tellen ze op. Meer dan 3 omvormers kun je in het portaal instellen.",
+        "data": {
+          "pv_label_1": "Naam omvormer 1",
+          "pv_power_1": "PV-vermogen omvormer 1",
+          "pv_energy_1": "PV-opbrengst omvormer 1",
+          "pv_label_2": "Naam omvormer 2",
+          "pv_power_2": "PV-vermogen omvormer 2",
+          "pv_energy_2": "PV-opbrengst omvormer 2",
+          "pv_label_3": "Naam omvormer 3",
+          "pv_power_3": "PV-vermogen omvormer 3",
+          "pv_energy_3": "PV-opbrengst omvormer 3"
+        },
+        "data_description": {
+          "pv_label_1": "Bijvoorbeeld 'Voor' of 'Garage'. Optioneel.",
+          "pv_power_1": "Vermogen van de panelen (input/DC), niet de uitgang van de omvormer.",
+          "pv_energy_1": "Totale opbrengst sinds installatie (niet van vandaag of dit jaar).",
+          "pv_label_2": "Bijvoorbeeld 'Voor' of 'Garage'. Optioneel.",
+          "pv_power_2": "Vermogen van de panelen (input/DC), niet de uitgang van de omvormer.",
+          "pv_energy_2": "Totale opbrengst sinds installatie (niet van vandaag of dit jaar).",
+          "pv_label_3": "Bijvoorbeeld 'Voor' of 'Garage'. Optioneel.",
+          "pv_power_3": "Vermogen van de panelen (input/DC), niet de uitgang van de omvormer.",
+          "pv_energy_3": "Totale opbrengst sinds installatie (niet van vandaag of dit jaar)."
         }
       },
       "battery": {
-        "title": "Thuisbatterij (optioneel)",
-        "description": "Heeft deze woning een thuisbatterij? Kies dan het vermogen en het laadpercentage. Anders laat je alles leeg.",
+        "title": "Batterij",
+        "description": "Kies het vermogen en het laadniveau van de batterij. Met de tellers voor geladen en ontladen worden de dagtotalen het nauwkeurigst. Meer batterijen kun je in het portaal instellen.",
         "data": {
-          "battery_power": "Vermogen batterij",
-          "battery_soc": "Laadpercentage",
-          "battery_invert": "Teken omdraaien"
+          "battery_power": "Vermogen",
+          "battery_invert": "Teken omdraaien",
+          "battery_soc": "Laadniveau",
+          "battery_charge": "Totaal geladen (aanbevolen)",
+          "battery_discharge": "Totaal ontladen (aanbevolen)",
+          "battery_capacity": "Bruikbare capaciteit"
         },
         "data_description": {
           "battery_power": "Positief = laden, negatief = ontladen.",
+          "battery_invert": "Aanzetten als deze sensor bij ontladen een positief getal geeft.",
           "battery_soc": "Hoe vol de batterij is, in %.",
-          "battery_invert": "Aanzetten als deze sensor bij ontladen een positief getal geeft."
+          "battery_charge": "Oplopende teller in kWh.",
+          "battery_discharge": "Oplopende teller in kWh. Kies beide tellers of geen van beide.",
+          "battery_capacity": "In kWh, bijvoorbeeld 10."
+        }
+      },
+      "house": {
+        "title": "Huisverbruik (optioneel)",
+        "description": "Heeft de omvormer een sensor voor het huisverbruik (bijv. 'load power')? Dan gebruikt het portaal die als controle. Het huisverbruik zelf rekenen we uit: net + zon − batterij.",
+        "data": {
+          "house_power": "Huisverbruik"
+        },
+        "data_description": {
+          "house_power": "Optioneel, alleen ter controle."
         }
       },
       "finish": {
         "title": "Gelukt",
-        "description": "Gekoppeld met **{home}**. De eerste meting is verstuurd en de woning staat nu op Online in het beheer.\n\nKlik op Verzenden om af te ronden."
+        "description": "Gekoppeld met **{home}**. De eerste meting en de sensorkeuze zijn naar het portaal gestuurd.\n\nKlik op Verzenden om af te ronden."
       },
       "finish_failed": {
-        "title": "Gekoppeld, maar nog geen meting verstuurd",
-        "description": "Gekoppeld met **{home}**, maar de testmeting kwam niet aan bij het portaal. Waarschijnlijk is er even geen internetverbinding.\n\nDe integratie blijft het elke minuut proberen; metingen worden bewaard tot het lukt. Klik op Verzenden om af te ronden."
+        "title": "Gekoppeld, maar nog niets verstuurd",
+        "description": "Gekoppeld met **{home}**, maar de testmeting kwam niet aan bij het portaal. Waarschijnlijk is er even geen internetverbinding.\n\nDe integratie blijft het elke minuut proberen; metingen en de sensorkeuze worden verstuurd zodra het lukt. Klik op Verzenden om af te ronden."
+      },
+      "finish_portal": {
+        "title": "Sensorkeuze overgenomen uit het portaal",
+        "description": "Gekoppeld met **{home}**. In het portaal stond al een sensorkeuze (versie {rev}); die is overgenomen. Wijzigen kan in het portaal of hier via Configureren.\n\nKlik op Verzenden om af te ronden."
       },
       "reauth_confirm": {
         "title": "Opnieuw koppelen",
@@ -87,7 +152,9 @@
       "wrong_unit_gas": "Deze sensor is geen gasmeter (verwacht m³).",
       "wrong_unit_percent": "Deze sensor is geen percentage.",
       "not_a_total": "Dit is een momentwaarde. Kies een sensor met een oplopende meterstand.",
-      "same_entity": "Afname en teruglevering moeten verschillende sensoren zijn."
+      "same_entity": "Afname en teruglevering moeten verschillende sensoren zijn.",
+      "duplicate": "Deze sensor is al bij een andere omvormer gekozen.",
+      "both_counters": "Kies beide tellers (geladen én ontladen) of geen van beide."
     },
     "abort": {
       "already_configured": "Deze woning is al gekoppeld op deze Home Assistant. De koppeling is vernieuwd.",
@@ -100,52 +167,113 @@
     "step": {
       "init": {
         "title": "Mijn Energie",
-        "description": "Wat wil je wijzigen?",
+        "description": "De sensorkeuze wordt ook in het portaal beheerd (nu versie {rev}). Wijzig je hier iets, dan gaat dat binnen een minuut naar het portaal.",
         "menu_options": {
-          "p1": "P1-meter en gas",
-          "inverter": "Omvormer",
-          "battery": "Thuisbatterij",
+          "installation": "Installatie en sensoren",
           "relink": "Opnieuw koppelen (nieuwe koppelcode)"
+        }
+      },
+      "installation": {
+        "title": "Installatie",
+        "description": "Welke installatie heeft deze woning? De volgende stappen passen zich daaraan aan. Je kunt alles later ook in het portaal instellen.",
+        "data": {
+          "installation": "Installatie"
         }
       },
       "p1": {
         "title": "P1-meter",
+        "description": "Controleer de sensoren van de P1-meter.",
         "data": {
-          "p1_power": "Actueel vermogen",
+          "p1_power": "Netto vermogen",
           "p1_import": "Totaal afgenomen",
           "p1_export": "Totaal teruggeleverd",
           "gas": "Gas (optioneel)"
         },
         "data_description": {
-          "p1_power": "Netto vermogen van de P1-meter: positief = afname, negatief = teruglevering.",
+          "p1_power": "Positief = afname, negatief = teruglevering.",
           "p1_import": "Meterstand afname (T1 + T2), in kWh.",
           "p1_export": "Meterstand teruglevering (T1 + T2), in kWh.",
           "gas": "Meterstand gas in m³. Leeg laten als er geen gas is."
         }
       },
-      "inverter": {
-        "title": "Omvormer",
-        "description": "Kies de sensoren van de omvormer. Laat leeg als er (nog) geen zonnepanelen zijn.",
+      "pv": {
+        "title": "Zonnepanelen",
+        "description": "Kies het vermogen en de totale opbrengst van de omvormer. We hebben al een voorstel gedaan.",
         "data": {
-          "pv_power": "Actueel vermogen",
-          "pv_energy": "Totale opbrengst"
+          "pv_power_1": "PV-vermogen",
+          "pv_energy_1": "PV-opbrengst totaal"
         },
         "data_description": {
-          "pv_power": "Wat de omvormer nu levert. W of kW mag; we rekenen zelf om.",
-          "pv_energy": "Totale opbrengst sinds installatie (niet van vandaag of dit jaar)."
+          "pv_power_1": "Wat de panelen nu opwekken. W of kW; we rekenen zelf om.",
+          "pv_energy_1": "Totale opbrengst sinds installatie (niet van vandaag of dit jaar)."
+        }
+      },
+      "pv_hybrid": {
+        "title": "Zonnepanelen",
+        "description": "Bij een hybride omvormer is de **uitgang** van de omvormer niet hetzelfde als wat de panelen opwekken: de batterij zit ertussen. Kies daarom het **PV-vermogen** (vaak 'input power' of 'PV power') en de **PV-opbrengst** van de panelen.",
+        "data": {
+          "pv_power_1": "PV-vermogen",
+          "pv_energy_1": "PV-opbrengst totaal"
+        },
+        "data_description": {
+          "pv_power_1": "Vermogen van de panelen (input/DC), niet de uitgang van de omvormer.",
+          "pv_energy_1": "Totale opbrengst van de panelen sinds installatie, niet de totale uitgang van de omvormer."
+        }
+      },
+      "pv_multi": {
+        "title": "Zonnepanelen (meerdere omvormers)",
+        "description": "Vul per omvormer het PV-vermogen en de totale opbrengst in. We tellen ze op. Meer dan 3 omvormers kun je in het portaal instellen.",
+        "data": {
+          "pv_label_1": "Naam omvormer 1",
+          "pv_power_1": "PV-vermogen omvormer 1",
+          "pv_energy_1": "PV-opbrengst omvormer 1",
+          "pv_label_2": "Naam omvormer 2",
+          "pv_power_2": "PV-vermogen omvormer 2",
+          "pv_energy_2": "PV-opbrengst omvormer 2",
+          "pv_label_3": "Naam omvormer 3",
+          "pv_power_3": "PV-vermogen omvormer 3",
+          "pv_energy_3": "PV-opbrengst omvormer 3"
+        },
+        "data_description": {
+          "pv_label_1": "Bijvoorbeeld 'Voor' of 'Garage'. Optioneel.",
+          "pv_power_1": "Vermogen van de panelen (input/DC), niet de uitgang van de omvormer.",
+          "pv_energy_1": "Totale opbrengst sinds installatie (niet van vandaag of dit jaar).",
+          "pv_label_2": "Bijvoorbeeld 'Voor' of 'Garage'. Optioneel.",
+          "pv_power_2": "Vermogen van de panelen (input/DC), niet de uitgang van de omvormer.",
+          "pv_energy_2": "Totale opbrengst sinds installatie (niet van vandaag of dit jaar).",
+          "pv_label_3": "Bijvoorbeeld 'Voor' of 'Garage'. Optioneel.",
+          "pv_power_3": "Vermogen van de panelen (input/DC), niet de uitgang van de omvormer.",
+          "pv_energy_3": "Totale opbrengst sinds installatie (niet van vandaag of dit jaar)."
         }
       },
       "battery": {
-        "title": "Thuisbatterij (optioneel)",
+        "title": "Batterij",
+        "description": "Kies het vermogen en het laadniveau van de batterij. Met de tellers voor geladen en ontladen worden de dagtotalen het nauwkeurigst. Meer batterijen kun je in het portaal instellen.",
         "data": {
-          "battery_power": "Vermogen batterij",
-          "battery_soc": "Laadpercentage",
-          "battery_invert": "Teken omdraaien"
+          "battery_power": "Vermogen",
+          "battery_invert": "Teken omdraaien",
+          "battery_soc": "Laadniveau",
+          "battery_charge": "Totaal geladen (aanbevolen)",
+          "battery_discharge": "Totaal ontladen (aanbevolen)",
+          "battery_capacity": "Bruikbare capaciteit"
         },
         "data_description": {
           "battery_power": "Positief = laden, negatief = ontladen.",
+          "battery_invert": "Aanzetten als deze sensor bij ontladen een positief getal geeft.",
           "battery_soc": "Hoe vol de batterij is, in %.",
-          "battery_invert": "Aanzetten als deze sensor bij ontladen een positief getal geeft."
+          "battery_charge": "Oplopende teller in kWh.",
+          "battery_discharge": "Oplopende teller in kWh. Kies beide tellers of geen van beide.",
+          "battery_capacity": "In kWh, bijvoorbeeld 10."
+        }
+      },
+      "house": {
+        "title": "Huisverbruik (optioneel)",
+        "description": "Heeft de omvormer een sensor voor het huisverbruik (bijv. 'load power')? Dan gebruikt het portaal die als controle. Het huisverbruik zelf rekenen we uit: net + zon − batterij.",
+        "data": {
+          "house_power": "Huisverbruik"
+        },
+        "data_description": {
+          "house_power": "Optioneel, alleen ter controle."
         }
       }
     },
@@ -162,16 +290,29 @@
       "wrong_unit_gas": "Deze sensor is geen gasmeter (verwacht m³).",
       "wrong_unit_percent": "Deze sensor is geen percentage.",
       "not_a_total": "Dit is een momentwaarde. Kies een sensor met een oplopende meterstand.",
-      "same_entity": "Afname en teruglevering moeten verschillende sensoren zijn."
+      "same_entity": "Afname en teruglevering moeten verschillende sensoren zijn.",
+      "duplicate": "Deze sensor is al bij een andere omvormer gekozen.",
+      "both_counters": "Kies beide tellers (geladen én ontladen) of geen van beide."
     },
     "abort": {
       "relink_started": "Er staat nu een melding 'Opnieuw koppelen' bij Instellingen. Open die en typ de nieuwe koppelcode in."
     }
   },
+  "selector": {
+    "installation": {
+      "options": {
+        "none": "Geen panelen (alleen P1-meter)",
+        "inverter": "Omvormer zonder batterij",
+        "hybrid": "Hybride omvormer + batterij",
+        "inverter_battery": "Omvormer + losse batterij",
+        "multi": "Meerdere omvormers"
+      }
+    }
+  },
   "issues": {
     "entity_missing": {
       "title": "Mijn Energie: sensor niet gevonden",
-      "description": "De sensor **{entity}** bestaat niet meer, dus deze meting ontbreekt voor {home}.\n\nKies een andere sensor via Instellingen › Apparaten en diensten › Mijn Energie › Configureren."
+      "description": "De sensor **{entity}** bestaat niet meer, dus deze meting ontbreekt voor {home}.\n\nKies een andere sensor in het portaal (Meters en sensoren) of via Instellingen › Apparaten en diensten › Mijn Energie › Configureren."
     },
     "no_connection": {
       "title": "Mijn Energie: geen verbinding",
@@ -194,6 +335,9 @@
           },
           "offline_since": {
             "name": "Geen verbinding sinds"
+          },
+          "config_rev": {
+            "name": "Sensorkeuze-versie"
           }
         }
       },

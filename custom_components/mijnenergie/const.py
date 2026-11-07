@@ -26,6 +26,31 @@ CONF_BATTERY_POWER: Final = "battery_power"
 CONF_BATTERY_SOC: Final = "battery_soc"
 CONF_BATTERY_INVERT: Final = "battery_invert"
 
+# Sensorkeuze (v1.1+): één configuratie in options[CONF_CONFIG], gelijk aan het formaat van het portaal
+CONF_CONFIG: Final = "config"
+CONF_CONFIG_REV: Final = "config_rev"
+CONF_CONFIG_DIRTY: Final = "config_dirty"  # lokaal gewijzigd, nog niet naar het portaal gestuurd
+
+INST_NONE: Final = "none"
+INST_INVERTER: Final = "inverter"
+INST_HYBRID: Final = "hybrid"
+INST_INVERTER_BATTERY: Final = "inverter_battery"
+INST_MULTI: Final = "multi"
+INSTALLATIONS: Final = [INST_NONE, INST_INVERTER, INST_HYBRID, INST_INVERTER_BATTERY, INST_MULTI]
+WITH_BATTERY: Final = (INST_HYBRID, INST_INVERTER_BATTERY)
+MAX_PV_IN_FLOW: Final = 3
+
+# Soort meting per veld in de configuratie
+FIELD_KINDS: Final[dict[str, str]] = {
+    "p1.power": "power", "p1.import": "energy", "p1.export": "energy", "p1.gas": "gas",
+    "pv.power": "power", "pv.energy": "energy",
+    "battery.power": "power", "battery.soc": "percent", "battery.charge": "energy", "battery.discharge": "energy",
+    "house.power": "power",
+}
+
+INVENTORY_INTERVAL_SECONDS: Final = 600
+
+# v1.0 (platte opties). Alleen nog gebruikt voor de migratie naar v1.1.
 # Soort meting per sensor, voor het controleren en omrekenen van eenheden
 SENSOR_KINDS: Final[dict[str, str]] = {
     CONF_P1_POWER: "power",

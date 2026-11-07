@@ -3,7 +3,9 @@
 Stuurt elke minuut de standen van de P1-meter, de omvormer en eventueel gas en thuisbatterij naar het [Mijn Energie-portaal](https://eltrading.nl/mijnenergie) van EL trading. Alles gaat via de schermen van Home Assistant, zonder YAML.
 
 - Koppelen met een 6-cijferige koppelcode uit het beheer
-- Stelt zelf de juiste sensoren voor (HomeWizard P1, de meeste omvormers)
+- Alle installaties: omvormer, hybride omvormer + batterij, omvormer + losse batterij, meerdere omvormers, of alleen een P1-meter
+- Stelt zelf de juiste sensoren voor (HomeWizard P1, de meeste omvormers en batterijen); bij een hybride omvormer het PV-vermogen, niet de uitgang
+- Sensorkeuze ook te beheren in het portaal (Beheer › Meters en sensoren); wijzigingen gaan beide kanten op
 - Rekent eenheden zelf om (W/kW, Wh/kWh/MWh, m³)
 - Geen internet? Metingen worden tot 7 dagen bewaard en daarna alsnog verstuurd
 - Meldingen onder Instellingen › Reparaties als er iets mis is
@@ -25,13 +27,21 @@ Vereist Home Assistant 2025.1 of nieuwer.
 1. In het beheer van het portaal: open de woning en klik op **Koppelcode maken**.
 2. In Home Assistant: Instellingen › Apparaten en diensten › **Integratie toevoegen** › **Mijn Energie**.
 3. Typ de koppelcode in.
-4. Controleer de voorgestelde sensoren:
+4. Kies de **installatie**. Staat er in het portaal al een sensorkeuze voor deze woning, dan wordt die overgenomen en sla je stap 4 en 5 over.
+5. Controleer de voorgestelde sensoren:
    - **P1-meter:** vermogen, afname, teruglevering en gas
-   - **Omvormer:** actueel vermogen en de **totale** opbrengst
-   - **Thuisbatterij:** optioneel
-5. Er gaat direct een testmeting naar het portaal. In het beheer staat de woning nu op Online.
+   - **Zonnepanelen:** PV-vermogen (de panelen, bij een hybride omvormer niet de uitgang) en de **totale** PV-opbrengst; bij meerdere omvormers tot 3 (meer via het portaal)
+   - **Batterij:** vermogen (+ laden), laadniveau, en bij voorkeur de tellers voor geladen/ontladen en de capaciteit
+   - **Huisverbruik:** optioneel, alleen ter controle
+6. Er gaat direct een testmeting en de sensorkeuze naar het portaal. In het beheer staat de woning nu op Online.
 
-Later iets wijzigen kan via de integratie › **Configureren**. Daar staat ook **Opnieuw koppelen** (met een nieuwe koppelcode).
+Later iets wijzigen kan op twee plekken:
+- In het **portaal**: Beheer › woning › **Meters en sensoren**. De HA Green neemt de nieuwe keuze binnen een minuut over (zie het logboek).
+- In **Home Assistant**: integratie › **Configureren** › Installatie en sensoren. Dit gaat binnen een minuut naar het portaal.
+
+De laatste wijziging wint; in het portaal kun je elke vorige versie terugzetten. Onder Configureren staat ook **Opnieuw koppelen** (met een nieuwe koppelcode).
+
+Bijwerken vanaf 1.0: de bestaande keuze wordt automatisch omgezet en naar het portaal gestuurd.
 
 ## Wat je ziet in Home Assistant
 
@@ -63,6 +73,8 @@ Voor support: integratie › menu › **Diagnose downloaden**. Het token staat d
 - De wachtrij wordt opgeslagen in `.storage`, ook bij een herstart. Om het geheugen van de HA Green te sparen gebeurt dat maximaal eens per 5 minuten.
 - Na 7 dagen zonder verbinding vervallen de oudste metingen.
 - Koppelen gaat via `api/pair.php`: de koppelcode wordt ingewisseld voor een token. Een nieuwe koppeling maakt het vorige token ongeldig.
+- Sensorkeuze: elke meting stuurt het versienummer mee; heeft het portaal een nieuwere versie, dan zit die in het antwoord. Lokale wijzigingen gaan via `api/sensors.php`. Elke 10 minuten gaat de lijst met bruikbare sensoren naar `api/inventory.php` (voor de keuzelijsten in het portaal).
+- Meerdere omvormers of batterijen worden opgeteld. Is één ervan even onbekend, dan wordt de som voor die minuut niet verstuurd (een halve som zou een sprong in de meterstand geven).
 
 ## Voor ontwikkelaars
 
@@ -73,7 +85,7 @@ custom_components/mijnenergie/
   __init__.py      opstarten, stoppen, hernoemde sensoren volgen
   config_flow.py   koppelschermen, Configureren, opnieuw koppelen
   sender.py        meten, wachtrij, versturen, status en meldingen
-  measure.py       eenheden omrekenen en meting opbouwen (zonder HA, los te testen)
+  measure.py       sensorkeuze (formaat gelijk aan het portaal), omrekenen, meting opbouwen (zonder HA, los te testen)
   detect.py        sensoren voorstellen
   api.py           verbinding met het portaal
   sensor.py        de vier statussensoren

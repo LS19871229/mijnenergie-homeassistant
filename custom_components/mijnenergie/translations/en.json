@@ -13,55 +13,120 @@
           "url": "Only change this for a test environment."
         }
       },
+      "installation": {
+        "title": "Installation",
+        "description": "What installation does this home have? The next steps adapt to it. You can also set everything later in the portal.",
+        "data": {
+          "installation": "Installation"
+        }
+      },
       "p1": {
         "title": "P1 meter",
-        "description": "Linked to **{home}**.\n\nP1 meter found: **{device}**. Check the sensors below; the current value is shown in the picker.",
+        "description": "Linked to **{home}**.\n\nP1 meter found: **{device}**. Check the sensors; the current value is shown in the picker.",
         "data": {
-          "p1_power": "Current power",
+          "p1_power": "Net power",
           "p1_import": "Total imported",
           "p1_export": "Total exported",
           "gas": "Gas (optional)"
         },
         "data_description": {
-          "p1_power": "Net power of the P1 meter: positive = import, negative = export.",
+          "p1_power": "Positive = import, negative = export.",
           "p1_import": "Import meter reading (T1 + T2), in kWh.",
           "p1_export": "Export meter reading (T1 + T2), in kWh.",
           "gas": "Gas meter reading in m³. Leave empty if there is no gas."
         }
       },
-      "inverter": {
-        "title": "Inverter",
-        "description": "Choose the inverter sensors. We already suggested sensors based on what is in Home Assistant.",
+      "pv": {
+        "title": "Solar panels",
+        "description": "Choose the inverter's power and total yield. We already made a suggestion.",
         "data": {
-          "pv_power": "Current power",
-          "pv_energy": "Total yield"
+          "pv_power_1": "PV power",
+          "pv_energy_1": "PV total yield"
         },
         "data_description": {
-          "pv_power": "What the inverter delivers now. W or kW; we convert.",
-          "pv_energy": "Total yield since installation (not today or this year)."
+          "pv_power_1": "What the panels produce now. W or kW; we convert.",
+          "pv_energy_1": "Total yield since installation (not today or this year)."
+        }
+      },
+      "pv_hybrid": {
+        "title": "Solar panels",
+        "description": "With a hybrid inverter, the inverter **output** is not what the panels produce: the battery sits in between. Choose the **PV power** (often 'input power' or 'PV power') and the **PV yield** of the panels.",
+        "data": {
+          "pv_power_1": "PV power",
+          "pv_energy_1": "PV total yield"
+        },
+        "data_description": {
+          "pv_power_1": "Power of the panels (input/DC), not the inverter output.",
+          "pv_energy_1": "Total yield of the panels since installation, not the inverter's total output."
+        }
+      },
+      "pv_multi": {
+        "title": "Solar panels (multiple inverters)",
+        "description": "Enter PV power and total yield per inverter. We add them up. More than 3 inverters can be set in the portal.",
+        "data": {
+          "pv_label_1": "Name inverter 1",
+          "pv_power_1": "PV power inverter 1",
+          "pv_energy_1": "PV yield inverter 1",
+          "pv_label_2": "Name inverter 2",
+          "pv_power_2": "PV power inverter 2",
+          "pv_energy_2": "PV yield inverter 2",
+          "pv_label_3": "Name inverter 3",
+          "pv_power_3": "PV power inverter 3",
+          "pv_energy_3": "PV yield inverter 3"
+        },
+        "data_description": {
+          "pv_label_1": "For example 'Front' or 'Garage'. Optional.",
+          "pv_power_1": "Power of the panels (input/DC), not the inverter output.",
+          "pv_energy_1": "Total yield since installation (not today or this year).",
+          "pv_label_2": "For example 'Front' or 'Garage'. Optional.",
+          "pv_power_2": "Power of the panels (input/DC), not the inverter output.",
+          "pv_energy_2": "Total yield since installation (not today or this year).",
+          "pv_label_3": "For example 'Front' or 'Garage'. Optional.",
+          "pv_power_3": "Power of the panels (input/DC), not the inverter output.",
+          "pv_energy_3": "Total yield since installation (not today or this year)."
         }
       },
       "battery": {
-        "title": "Home battery (optional)",
-        "description": "Does this home have a battery? Then choose its power and state of charge. Otherwise leave everything empty.",
+        "title": "Battery",
+        "description": "Choose the battery's power and state of charge. With the charged/discharged counters, daily totals are most accurate. More batteries can be set in the portal.",
         "data": {
-          "battery_power": "Battery power",
+          "battery_power": "Power",
+          "battery_invert": "Invert sign",
           "battery_soc": "State of charge",
-          "battery_invert": "Invert sign"
+          "battery_charge": "Total charged (recommended)",
+          "battery_discharge": "Total discharged (recommended)",
+          "battery_capacity": "Usable capacity"
         },
         "data_description": {
           "battery_power": "Positive = charging, negative = discharging.",
+          "battery_invert": "Turn on if this sensor shows a positive number while discharging.",
           "battery_soc": "How full the battery is, in %.",
-          "battery_invert": "Turn on if this sensor shows a positive number while discharging."
+          "battery_charge": "Increasing counter in kWh.",
+          "battery_discharge": "Increasing counter in kWh. Choose both counters or neither.",
+          "battery_capacity": "In kWh, for example 10."
+        }
+      },
+      "house": {
+        "title": "House consumption (optional)",
+        "description": "Does the inverter have a house consumption sensor (e.g. 'load power')? The portal uses it as a check. House consumption itself is calculated: grid + solar − battery.",
+        "data": {
+          "house_power": "House consumption"
+        },
+        "data_description": {
+          "house_power": "Optional, only as a check."
         }
       },
       "finish": {
         "title": "Done",
-        "description": "Linked with **{home}**. The first measurement was sent and the home is now Online in the admin.\n\nClick Submit to finish."
+        "description": "Linked with **{home}**. The first measurement and the sensor choice were sent to the portal.\n\nClick Submit to finish."
       },
       "finish_failed": {
-        "title": "Linked, but no measurement sent yet",
-        "description": "Linked with **{home}**, but the test measurement did not reach the portal. The internet connection is probably down.\n\nThe integration keeps trying every minute and stores measurements until it succeeds. Click Submit to finish."
+        "title": "Linked, but nothing sent yet",
+        "description": "Linked with **{home}**, but the test measurement did not reach the portal. The internet connection is probably down.\n\nThe integration keeps trying every minute; measurements and the sensor choice are sent once it succeeds. Click Submit to finish."
+      },
+      "finish_portal": {
+        "title": "Sensor choice taken from the portal",
+        "description": "Linked with **{home}**. The portal already had a sensor choice (version {rev}); it was taken over. Change it in the portal or here via Configure.\n\nClick Submit to finish."
       },
       "reauth_confirm": {
         "title": "Link again",
@@ -87,7 +152,9 @@
       "wrong_unit_gas": "This sensor is not a gas meter (expected m³).",
       "wrong_unit_percent": "This sensor is not a percentage.",
       "not_a_total": "This is an instantaneous value. Choose a sensor with an increasing meter reading.",
-      "same_entity": "Import and export must be different sensors."
+      "same_entity": "Import and export must be different sensors.",
+      "duplicate": "This sensor is already chosen for another inverter.",
+      "both_counters": "Choose both counters (charged and discharged) or neither."
     },
     "abort": {
       "already_configured": "This home is already linked on this Home Assistant. The link was renewed.",
@@ -100,52 +167,113 @@
     "step": {
       "init": {
         "title": "Mijn Energie",
-        "description": "What do you want to change?",
+        "description": "The sensor choice is also managed in the portal (now version {rev}). If you change something here, it is sent to the portal within a minute.",
         "menu_options": {
-          "p1": "P1 meter and gas",
-          "inverter": "Inverter",
-          "battery": "Home battery",
+          "installation": "Installation and sensors",
           "relink": "Link again (new pairing code)"
+        }
+      },
+      "installation": {
+        "title": "Installation",
+        "description": "What installation does this home have? The next steps adapt to it. You can also set everything later in the portal.",
+        "data": {
+          "installation": "Installation"
         }
       },
       "p1": {
         "title": "P1 meter",
+        "description": "Check the P1 meter sensors.",
         "data": {
-          "p1_power": "Current power",
+          "p1_power": "Net power",
           "p1_import": "Total imported",
           "p1_export": "Total exported",
           "gas": "Gas (optional)"
         },
         "data_description": {
-          "p1_power": "Net power of the P1 meter: positive = import, negative = export.",
+          "p1_power": "Positive = import, negative = export.",
           "p1_import": "Import meter reading (T1 + T2), in kWh.",
           "p1_export": "Export meter reading (T1 + T2), in kWh.",
           "gas": "Gas meter reading in m³. Leave empty if there is no gas."
         }
       },
-      "inverter": {
-        "title": "Inverter",
-        "description": "Choose the inverter sensors. Leave empty if there are no solar panels (yet).",
+      "pv": {
+        "title": "Solar panels",
+        "description": "Choose the inverter's power and total yield. We already made a suggestion.",
         "data": {
-          "pv_power": "Current power",
-          "pv_energy": "Total yield"
+          "pv_power_1": "PV power",
+          "pv_energy_1": "PV total yield"
         },
         "data_description": {
-          "pv_power": "What the inverter delivers now. W or kW; we convert.",
-          "pv_energy": "Total yield since installation (not today or this year)."
+          "pv_power_1": "What the panels produce now. W or kW; we convert.",
+          "pv_energy_1": "Total yield since installation (not today or this year)."
+        }
+      },
+      "pv_hybrid": {
+        "title": "Solar panels",
+        "description": "With a hybrid inverter, the inverter **output** is not what the panels produce: the battery sits in between. Choose the **PV power** (often 'input power' or 'PV power') and the **PV yield** of the panels.",
+        "data": {
+          "pv_power_1": "PV power",
+          "pv_energy_1": "PV total yield"
+        },
+        "data_description": {
+          "pv_power_1": "Power of the panels (input/DC), not the inverter output.",
+          "pv_energy_1": "Total yield of the panels since installation, not the inverter's total output."
+        }
+      },
+      "pv_multi": {
+        "title": "Solar panels (multiple inverters)",
+        "description": "Enter PV power and total yield per inverter. We add them up. More than 3 inverters can be set in the portal.",
+        "data": {
+          "pv_label_1": "Name inverter 1",
+          "pv_power_1": "PV power inverter 1",
+          "pv_energy_1": "PV yield inverter 1",
+          "pv_label_2": "Name inverter 2",
+          "pv_power_2": "PV power inverter 2",
+          "pv_energy_2": "PV yield inverter 2",
+          "pv_label_3": "Name inverter 3",
+          "pv_power_3": "PV power inverter 3",
+          "pv_energy_3": "PV yield inverter 3"
+        },
+        "data_description": {
+          "pv_label_1": "For example 'Front' or 'Garage'. Optional.",
+          "pv_power_1": "Power of the panels (input/DC), not the inverter output.",
+          "pv_energy_1": "Total yield since installation (not today or this year).",
+          "pv_label_2": "For example 'Front' or 'Garage'. Optional.",
+          "pv_power_2": "Power of the panels (input/DC), not the inverter output.",
+          "pv_energy_2": "Total yield since installation (not today or this year).",
+          "pv_label_3": "For example 'Front' or 'Garage'. Optional.",
+          "pv_power_3": "Power of the panels (input/DC), not the inverter output.",
+          "pv_energy_3": "Total yield since installation (not today or this year)."
         }
       },
       "battery": {
-        "title": "Home battery (optional)",
+        "title": "Battery",
+        "description": "Choose the battery's power and state of charge. With the charged/discharged counters, daily totals are most accurate. More batteries can be set in the portal.",
         "data": {
-          "battery_power": "Battery power",
+          "battery_power": "Power",
+          "battery_invert": "Invert sign",
           "battery_soc": "State of charge",
-          "battery_invert": "Invert sign"
+          "battery_charge": "Total charged (recommended)",
+          "battery_discharge": "Total discharged (recommended)",
+          "battery_capacity": "Usable capacity"
         },
         "data_description": {
           "battery_power": "Positive = charging, negative = discharging.",
+          "battery_invert": "Turn on if this sensor shows a positive number while discharging.",
           "battery_soc": "How full the battery is, in %.",
-          "battery_invert": "Turn on if this sensor shows a positive number while discharging."
+          "battery_charge": "Increasing counter in kWh.",
+          "battery_discharge": "Increasing counter in kWh. Choose both counters or neither.",
+          "battery_capacity": "In kWh, for example 10."
+        }
+      },
+      "house": {
+        "title": "House consumption (optional)",
+        "description": "Does the inverter have a house consumption sensor (e.g. 'load power')? The portal uses it as a check. House consumption itself is calculated: grid + solar − battery.",
+        "data": {
+          "house_power": "House consumption"
+        },
+        "data_description": {
+          "house_power": "Optional, only as a check."
         }
       }
     },
@@ -162,16 +290,29 @@
       "wrong_unit_gas": "This sensor is not a gas meter (expected m³).",
       "wrong_unit_percent": "This sensor is not a percentage.",
       "not_a_total": "This is an instantaneous value. Choose a sensor with an increasing meter reading.",
-      "same_entity": "Import and export must be different sensors."
+      "same_entity": "Import and export must be different sensors.",
+      "duplicate": "This sensor is already chosen for another inverter.",
+      "both_counters": "Choose both counters (charged and discharged) or neither."
     },
     "abort": {
       "relink_started": "A 'Link again' notice is now shown under Settings. Open it and enter the new pairing code."
     }
   },
+  "selector": {
+    "installation": {
+      "options": {
+        "none": "No solar panels (P1 meter only)",
+        "inverter": "Inverter without battery",
+        "hybrid": "Hybrid inverter + battery",
+        "inverter_battery": "Inverter + separate battery",
+        "multi": "Multiple inverters"
+      }
+    }
+  },
   "issues": {
     "entity_missing": {
       "title": "Mijn Energie: sensor not found",
-      "description": "The sensor **{entity}** no longer exists, so this measurement is missing for {home}.\n\nChoose another sensor via Settings › Devices & services › Mijn Energie › Configure."
+      "description": "The sensor **{entity}** no longer exists, so this measurement is missing for {home}.\n\nChoose another sensor in the portal (Meters and sensors) or via Settings › Devices & services › Mijn Energie › Configure."
     },
     "no_connection": {
       "title": "Mijn Energie: no connection",
@@ -194,6 +335,9 @@
           },
           "offline_since": {
             "name": "Offline since"
+          },
+          "config_rev": {
+            "name": "Sensor choice version"
           }
         }
       },
