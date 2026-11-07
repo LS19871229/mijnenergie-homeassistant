@@ -6,6 +6,8 @@ Sleutels in de resultaten zijn de velden van de configuratie ("power", "import",
 
 from __future__ import annotations
 
+import re
+
 from homeassistant.const import ATTR_DEVICE_CLASS, ATTR_UNIT_OF_MEASUREMENT
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -56,8 +58,42 @@ def _best(cands: list[tuple[int, str]]) -> str | None:
     return entity_id if score > 0 else None
 
 
+def default_invert(hass: HomeAssistant, entity_id: str | None) -> bool:
+    """Bekende merken met het omgekeerde teken.
+
+    GoodWe: de meter in de omvormer geeft afname als negatief getal, en het batterijvermogen is positief bij ontladen.
+    """
+    if not entity_id:
+        return False
+    entry = er.async_get(hass).async_get(entity_id)
+    platform = entry.platform if entry else ""
+    text = entity_id.lower()
+    if platform == "goodwe":
+        return "meter" in text or "batter" in text
+    return False
+
+
+def _goodwe_meter(hass: HomeAssistant) -> dict[str, str]:
+    """Netmeter van een GoodWe-omvormer (als er geen HomeWizard P1 is)."""
+    out: dict[str, str] = {}
+    for e in _sensor_entries(hass):
+        if e.platform != "goodwe":
+            continue
+        text = _text(e)
+        dc, unit, _ = _attrs(hass, e)
+        if "meter" not in text or re.search(r"(^|[_ ])l[123]($|[_ ])", text):
+            continue
+        if dc == "power" and unit in FACTORS["power"] and "active" in text:
+            out["power"] = e.entity_id
+        elif dc == "energy" and unit in FACTORS["energy"] and "import" in text:
+            out["import"] = e.entity_id
+        elif dc == "energy" and unit in FACTORS["energy"] and "export" in text:
+            out["export"] = e.entity_id
+    return out
+
+
 def suggest_p1(hass: HomeAssistant) -> tuple[dict[str, str], str | None]:
-    """Sensoren van een HomeWizard P1-meter. Geeft (voorstellen, apparaatnaam)."""
+    """Sensoren van een HomeWizard P1-meter (of anders de meter van een GoodWe). Geeft (voorstellen, apparaatnaam)."""
     entries = [e for e in _sensor_entries(hass) if e.platform == HOMEWIZARD]
     by_device: dict[str | None, list[er.RegistryEntry]] = {}
     for e in entries:
@@ -80,6 +116,11 @@ def suggest_p1(hass: HomeAssistant) -> tuple[dict[str, str], str | None]:
         if dc == "gas" and unit in FACTORS["gas"]:
             best["gas"] = e.entity_id
             break
+
+    if len(best) < 3:
+        gw = _goodwe_meter(hass)
+        if len(gw) == 3:
+            return {**gw, **({"gas": best["gas"]} if "gas" in best else {})}, "GoodWe-meter"
 
     name = None
     if best_device:
@@ -106,11 +147,17 @@ def suggest_pv(hass: HomeAssistant, hybrid: bool = False, exclude: set[str] | No
         text = _text(e)
         if dc == "power" and unit in FACTORS["power"]:
             score = 3 * _count(text, good + ("input", "dc", "current", "active")) - 5 * _count(text, bad + _BAD_PERIOD)
+            if re.search(r"(^|[._])pv_power$", e.entity_id):
+                score += 6  # bijv. GoodWe "PV Power": het totaal van de panelen
+            if re.search(r"(^|[._ ])pv\d", text) or re.search(r"(^|[_ ])l[123]($|[_ ])", text):
+                score -= 8  # één string of één fase
             if hybrid:
-                score += 4 * _count(text, ("input", "dc", "pv")) - 6 * _count(text, ("active", "output", "ac_power", "uitgang"))
+                score += 4 * _count(text, ("input", "dc", "pv")) - 6 * _count(text, ("active", "output", "ac_power", "uitgang", "total_power", "on_grid"))
             power.append((score, e.entity_id))
         elif dc == "energy" and unit in FACTORS["energy"] and sc in ("total_increasing", "total", None):
-            score = 3 * _count(text, good + ("lifetime", "total", "totaal")) - 5 * _count(text, bad + _BAD_PERIOD)
+            score = 3 * _count(text, good + ("lifetime", "total", "totaal", "generation")) - 5 * _count(text, bad + _BAD_PERIOD)
+            if re.search(r"(^|[._ ])pv\d", text):
+                score -= 8
             if hybrid:
                 score += 3 * _count(text, ("pv", "input", "dc")) - 4 * _count(text, ("accumulated", "output"))
             energy.append((score, e.entity_id))
@@ -163,6 +210,7 @@ def suggest_house(hass: HomeAssistant) -> str | None:
         dc, unit, _ = _attrs(hass, e)
         text = _text(e)
         if dc == "power" and unit in FACTORS["power"]:
-            score = 4 * _count(text, ("house", "load", "consumption", "huis", "verbruik")) - 5 * _count(text, _BATTERY + ("pv", "solar", "grid", "input"))
+            score = 4 * _count(text, ("house", "load", "consumption", "huis", "verbruik")) + 3 * _count(text, ("house_consumption",)) \
+                - 5 * _count(text, _BATTERY + ("pv", "solar", "grid", "input", "back_up")) - 8 * bool(re.search(r"(^|[_ ])l[123]($|[_ ])", text))
             cands.append((score, e.entity_id))
     return _best(cands)

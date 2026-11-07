@@ -27,13 +27,15 @@
           "p1_power": "Netto vermogen",
           "p1_import": "Totaal afgenomen",
           "p1_export": "Totaal teruggeleverd",
-          "gas": "Gas (optioneel)"
+          "gas": "Gas (optioneel)",
+          "p1_invert": "Teken omdraaien"
         },
         "data_description": {
-          "p1_power": "Positief = afname, negatief = teruglevering.",
+          "p1_power": "Positief = afname, negatief = teruglevering. Andersom? Zet dan Teken omdraaien aan.",
           "p1_import": "Meterstand afname (T1 + T2), in kWh.",
           "p1_export": "Meterstand teruglevering (T1 + T2), in kWh.",
-          "gas": "Meterstand gas in m³. Leeg laten als er geen gas is."
+          "gas": "Meterstand gas in m³. Leeg laten als er geen gas is.",
+          "p1_invert": "Aanzetten als deze sensor bij afname een negatief getal geeft (bijv. de meter van een GoodWe)."
         }
       },
       "pv": {
@@ -187,13 +189,15 @@
           "p1_power": "Netto vermogen",
           "p1_import": "Totaal afgenomen",
           "p1_export": "Totaal teruggeleverd",
-          "gas": "Gas (optioneel)"
+          "gas": "Gas (optioneel)",
+          "p1_invert": "Teken omdraaien"
         },
         "data_description": {
-          "p1_power": "Positief = afname, negatief = teruglevering.",
+          "p1_power": "Positief = afname, negatief = teruglevering. Andersom? Zet dan Teken omdraaien aan.",
           "p1_import": "Meterstand afname (T1 + T2), in kWh.",
           "p1_export": "Meterstand teruglevering (T1 + T2), in kWh.",
-          "gas": "Meterstand gas in m³. Leeg laten als er geen gas is."
+          "gas": "Meterstand gas in m³. Leeg laten als er geen gas is.",
+          "p1_invert": "Aanzetten als deze sensor bij afname een negatief getal geeft (bijv. de meter van een GoodWe)."
         }
       },
       "pv": {

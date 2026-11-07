@@ -115,3 +115,11 @@ def test_v1_migration_and_helpers() -> None:
     renamed = rename_entity(cfg, "sensor.pv", "sensor.omvormer")
     assert renamed["pv"][0]["power"] == "sensor.omvormer"
     assert rename_entity(cfg, "sensor.bestaat_niet", "sensor.x") is None
+
+
+def test_p1_invert() -> None:
+    cfg = normalize_config({"installation": "none", "p1": {"power": "sensor.net", "invert": True}})
+    assert cfg["p1"]["invert"] is True
+    m = build_measurement(WHEN, cfg, getter({"sensor.net": ("-173", "W")}))
+    assert m["power"]["net_w"] == 173.0
+    assert normalize_config({"p1": {"invert": "0"}})["p1"]["invert"] is False

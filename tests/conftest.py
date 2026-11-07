@@ -117,3 +117,21 @@ def hybrid(hass: HomeAssistant, meters: dict[str, str]) -> dict[str, str]:
     ids["bat_discharge"] = _register(hass, "huawei_solar", "HU_bat_discharge", "battery_total_discharge", None, hu, "1655.0", KWH)
     ids["house"] = _register(hass, "huawei_solar", "HU_load", "house_consumption_power", None, hu, "1010", W)
     return ids
+
+
+@pytest.fixture
+def goodwe(hass: HomeAssistant) -> dict[str, str]:
+    """GoodWe hybride omvormer met batterij en eigen netmeter, zonder HomeWizard (zoals Oude Rijksweg 103)."""
+    gw = MockConfigEntry(domain="goodwe")
+    gw.add_to_hass(hass)
+    rows = {
+        "meter_power": ("meter_active_power_total", "-173", W), "meter_l1": ("meter_active_power_l1", "-135", W),
+        "active_power": ("active_power", "-174", W), "meter_import": ("meter_total_energy_import", "3441.68", KWH),
+        "meter_export": ("meter_total_energy_export", "7326.24", KWH), "pv_power": ("pv_power", "93", W),
+        "pv1_power": ("pv1_power", "37", W), "total_power": ("total_power", "90", W),
+        "pv_total": ("total_pv_generation", "9070.8", KWH), "pv_today": ("today_s_pv_generation", "2.6", KWH),
+        "bat_power": ("battery_power", "51", W), "bat_soc": ("battery_state_of_charge", "71", PCT),
+        "bat_charge": ("total_battery_charge", "4440.6", KWH), "bat_discharge": ("total_battery_discharge", "4154.1", KWH),
+        "house": ("house_consumption", "318", W), "load_l1": ("load_l1", "173", W),
+    }
+    return {key: _register(hass, "goodwe", f"GW_{obj}", obj, None, gw, state, attrs) for key, (obj, state, attrs) in rows.items()}

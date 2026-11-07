@@ -42,7 +42,7 @@ from .const import (
     MODE_MEETFASE,
     WITH_BATTERY,
 )
-from .detect import suggest_battery, suggest_house, suggest_p1, suggest_pv
+from .detect import default_invert, suggest_battery, suggest_house, suggest_p1, suggest_pv
 from .measure import build_measurement, config_entities, config_meters, empty_config, normalize_config, unit_supported
 
 _LOGGER = logging.getLogger(__name__)
@@ -138,16 +138,20 @@ class SensorStepsMixin:
             values = user_input
             if not errors:
                 self._cfg["p1"] = {"power": user_input["p1_power"], "import": user_input["p1_import"],
-                                   "export": user_input["p1_export"], "gas": user_input.get("gas") or ""}
+                                   "export": user_input["p1_export"], "gas": user_input.get("gas") or "",
+                                   "invert": bool(user_input.get("p1_invert"))}
                 return await self._after_p1()
         else:
-            values = {"p1_power": p1["power"], "p1_import": p1["import"], "p1_export": p1["export"], "gas": p1["gas"]}
+            values = {"p1_power": p1["power"], "p1_import": p1["import"], "p1_export": p1["export"], "gas": p1["gas"],
+                      "p1_invert": p1.get("invert", False)}
             if self._first_time or not p1["power"]:
                 sugg, device = suggest_p1(self.hass)
                 values = {"p1_power": sugg.get("power"), "p1_import": sugg.get("import"),
-                          "p1_export": sugg.get("export"), "gas": sugg.get("gas")}
+                          "p1_export": sugg.get("export"), "gas": sugg.get("gas"),
+                          "p1_invert": default_invert(self.hass, sugg.get("power"))}
         schema = vol.Schema({
             _field("p1_power", True, values.get("p1_power")): SENSOR,
+            vol.Optional("p1_invert", default=bool(values.get("p1_invert"))): selector.BooleanSelector(),
             _field("p1_import", True, values.get("p1_import")): SENSOR,
             _field("p1_export", True, values.get("p1_export")): SENSOR,
             _field("gas", False, values.get("gas")): SENSOR,
@@ -263,6 +267,7 @@ class SensorStepsMixin:
             else:
                 sugg = suggest_battery(self.hass)
                 values = {f"battery_{k}": v for k, v in sugg.items()}
+                values["battery_invert"] = default_invert(self.hass, sugg.get("power"))
         self._extra_batteries = self._cfg["battery"][1:] if self._cfg["battery"] else []
         schema = vol.Schema({
             _field("battery_power", required, values.get("battery_power")): SENSOR,

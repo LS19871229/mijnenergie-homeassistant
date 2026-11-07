@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from datetime import timedelta
+from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
@@ -17,6 +19,7 @@ from custom_components.mijnenergie.const import CONF_CONFIG, CONF_CONFIG_DIRTY, 
 
 from .conftest import API, CONFIG_INVERTER, ENTRY_DATA, ENTRY_OPTIONS
 
+MANIFEST_VERSION = json.loads((Path(__file__).parents[1] / "custom_components/mijnenergie/manifest.json").read_text())["version"]
 OK = {"ok": True, "accepted": 1, "rejected": 0, "config_rev": 3}
 
 
@@ -47,7 +50,7 @@ async def test_first_measurement_after_start(hass: HomeAssistant, meters: dict[s
     m = measurements[0]
     assert m["power"]["net_w"] == -720.0 and m["power"]["pv_w"] == 1240.0 and m["power"]["battery_w"] is None
     assert m["energy"]["pv_kwh"] == 9876.3 and m["energy"]["gas_m3"] == 1532.118
-    assert meta["meters"] == ["p1", "gas", "pv"] and meta["config_rev"] == 3 and meta["integration_version"] == "1.1.0"
+    assert meta["meters"] == ["p1", "gas", "pv"] and meta["config_rev"] == 3 and meta["integration_version"] == MANIFEST_VERSION
     assert _state(hass, entry, "status") == "connected"
     await hass.config_entries.async_unload(entry.entry_id)
 

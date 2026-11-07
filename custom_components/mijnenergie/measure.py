@@ -6,7 +6,7 @@ Het portaal verwacht: vermogen in W, energie in kWh, gas in m³, laadniveau in %
 Configuratie (zelfde formaat als het portaal, zie lib/sensorconfig.php):
 {
   "installation": "none|inverter|hybrid|inverter_battery|multi",
-  "p1":      {"power": "sensor.x", "import": "...", "export": "...", "gas": ""},
+  "p1":      {"power": "sensor.x", "import": "...", "export": "...", "gas": "", "invert": false},
   "pv":      [{"label": "Voor", "power": "...", "energy": "..."}],
   "battery": [{"label": "", "power": "...", "soc": "...", "charge": "", "discharge": "", "invert": false, "capacity": 10.0}],
   "house":   {"power": ""}
@@ -93,7 +93,7 @@ def _entity(value: Any) -> str:
 
 
 def empty_config() -> dict[str, Any]:
-    return {"installation": INST_INVERTER, "p1": {"power": "", "import": "", "export": "", "gas": ""},
+    return {"installation": INST_INVERTER, "p1": {"power": "", "import": "", "export": "", "gas": "", "invert": False},
             "pv": [], "battery": [], "house": {"power": ""}}
 
 
@@ -107,6 +107,7 @@ def normalize_config(raw: Any) -> dict[str, Any]:
     p1 = raw.get("p1") if isinstance(raw.get("p1"), Mapping) else {}
     for key in ("power", "import", "export", "gas"):
         cfg["p1"][key] = _entity(p1.get(key))
+    cfg["p1"]["invert"] = bool(p1.get("invert")) and p1.get("invert") not in ("0", "false")
     for src in (raw.get("pv") if isinstance(raw.get("pv"), list) else [])[:MAX_PV]:
         if not isinstance(src, Mapping):
             continue
@@ -181,7 +182,7 @@ def rename_entity(cfg: Mapping[str, Any], old: str, new: str) -> dict[str, Any] 
         return None
     out = normalize_config(cfg)
     for key, value in out["p1"].items():
-        if value == old:
+        if key != "invert" and value == old:
             out["p1"][key] = new
     for group in ("pv", "battery"):
         for src in out[group]:
@@ -236,6 +237,9 @@ def build_measurement(when: datetime, cfg: Mapping[str, Any], get_state: StateGe
         return None if value is None else round(value, digits)
 
     p1 = cfg["p1"]
+    net = read(p1.get("power", ""), "power")
+    if net is not None and p1.get("invert"):
+        net = -net  # sommige meters/omvormers geven afname als negatief getal
     pv_parts = [read(src["power"], "power") for src in cfg["pv"] if src.get("power")]
     pv_energy = [read(src["energy"], "energy") for src in cfg["pv"] if src.get("energy")]
 
@@ -261,7 +265,7 @@ def build_measurement(when: datetime, cfg: Mapping[str, Any], get_state: StateGe
     measurement: dict[str, Any] = {
         "ts": when.isoformat(timespec="seconds"),
         "power": {
-            "net_w": rnd(read(p1.get("power", ""), "power"), 1),
+            "net_w": rnd(net, 1),
             "pv_w": rnd(total(pv_parts), 1),
             "battery_w": rnd(total(bat_power), 1),
             "house_w": rnd(read(cfg["house"].get("power", ""), "power"), 1),

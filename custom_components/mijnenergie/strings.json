@@ -27,13 +27,15 @@
           "p1_power": "Net power",
           "p1_import": "Total imported",
           "p1_export": "Total exported",
-          "gas": "Gas (optional)"
+          "gas": "Gas (optional)",
+          "p1_invert": "Invert sign"
         },
         "data_description": {
           "p1_power": "Positive = import, negative = export.",
           "p1_import": "Import meter reading (T1 + T2), in kWh.",
           "p1_export": "Export meter reading (T1 + T2), in kWh.",
-          "gas": "Gas meter reading in m³. Leave empty if there is no gas."
+          "gas": "Gas meter reading in m³. Leave empty if there is no gas.",
+          "p1_invert": "Turn on if this sensor shows a negative number while importing (e.g. GoodWe meter)."
         }
       },
       "pv": {
@@ -187,13 +189,15 @@
           "p1_power": "Net power",
           "p1_import": "Total imported",
           "p1_export": "Total exported",
-          "gas": "Gas (optional)"
+          "gas": "Gas (optional)",
+          "p1_invert": "Invert sign"
         },
         "data_description": {
           "p1_power": "Positive = import, negative = export.",
           "p1_import": "Import meter reading (T1 + T2), in kWh.",
           "p1_export": "Export meter reading (T1 + T2), in kWh.",
-          "gas": "Gas meter reading in m³. Leave empty if there is no gas."
+          "gas": "Gas meter reading in m³. Leave empty if there is no gas.",
+          "p1_invert": "Turn on if this sensor shows a negative number while importing (e.g. GoodWe meter)."
         }
       },
       "pv": {

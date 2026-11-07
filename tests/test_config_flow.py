@@ -252,3 +252,37 @@ async def test_options_flow_changes_go_to_portal(hass: HomeAssistant, hybrid: di
     assert result["reason"] == "relink_started"
     assert any(f["context"]["source"] == "reauth" for f in hass.config_entries.flow.async_progress())
     await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_goodwe_suggestions_and_signs(hass: HomeAssistant, goodwe: dict[str, str]) -> None:
+    """GoodWe zonder HomeWizard: meter, PV Power, tellers en beide tekens omgedraaid; huis klopt met de sensor."""
+    result = await _paired(hass)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"installation": "hybrid"})
+    assert _suggested(result, "p1_power") == goodwe["meter_power"]
+    assert _suggested(result, "p1_import") == goodwe["meter_import"]
+    assert _suggested(result, "p1_export") == goodwe["meter_export"]
+    invert = next(f for f in result["data_schema"].schema if str(f) == "p1_invert")
+    assert invert.default() is True
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {
+        "p1_power": goodwe["meter_power"], "p1_invert": True, "p1_import": goodwe["meter_import"], "p1_export": goodwe["meter_export"]})
+    assert result["step_id"] == "pv_hybrid"
+    assert _suggested(result, "pv_power_1") == goodwe["pv_power"]  # niet Active/Total Power of PV1
+    assert _suggested(result, "pv_energy_1") == goodwe["pv_total"]
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"pv_power_1": goodwe["pv_power"], "pv_energy_1": goodwe["pv_total"]})
+    assert _suggested(result, "battery_power") == goodwe["bat_power"]
+    assert _suggested(result, "battery_charge") == goodwe["bat_charge"]
+    assert next(f for f in result["data_schema"].schema if str(f) == "battery_invert").default() is True
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {
+        "battery_power": goodwe["bat_power"], "battery_invert": True, "battery_soc": goodwe["bat_soc"],
+        "battery_charge": goodwe["bat_charge"], "battery_discharge": goodwe["bat_discharge"]})
+    assert _suggested(result, "house_power") == goodwe["house"]
+    send = AsyncMock(return_value={"ok": True, "config_rev": 0})
+    with patch(f"{API}.send", send), patch(f"{API}.push_config", AsyncMock(return_value=1)), patch(f"{API}.send_inventory", AsyncMock(return_value=1)):
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], {"house_power": goodwe["house"]})
+        p = send.await_args.args[0][0]["power"]
+        assert p["net_w"] == 173.0 and p["battery_w"] == -51.0  # afname positief, ontladen negatief
+        assert p["net_w"] + p["pv_w"] - p["battery_w"] == 317.0  # klopt met de huissensor (318 W)
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
+        await hass.async_block_till_done()
+    assert result["options"][CONF_CONFIG]["p1"]["invert"] is True
+    await hass.config_entries.async_unload(hass.config_entries.async_entries(DOMAIN)[0].entry_id)
