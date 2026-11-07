@@ -50,6 +50,11 @@ FIELD_KINDS: Final[dict[str, str]] = {
 
 INVENTORY_INTERVAL_SECONDS: Final = 600
 
+# Automatisch bijwerken via HACS: 's nachts installeren en Home Assistant herstarten
+CONF_AUTO_UPDATE: Final = "auto_update"
+AUTO_UPDATE_HOUR: Final = 3
+REPO_SLUG: Final = "mijnenergie-homeassistant"
+
 # v1.0 (platte opties). Alleen nog gebruikt voor de migratie naar v1.1.
 # Soort meting per sensor, voor het controleren en omrekenen van eenheden
 SENSOR_KINDS: Final[dict[str, str]] = {

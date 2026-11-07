@@ -172,7 +172,8 @@
         "description": "The sensor choice is also managed in the portal (now version {rev}). If you change something here, it is sent to the portal within a minute.",
         "menu_options": {
           "installation": "Installation and sensors",
-          "relink": "Link again (new pairing code)"
+          "relink": "Link again (new pairing code)",
+          "auto_update": "Automatic updates"
         }
       },
       "installation": {
@@ -278,6 +279,16 @@
         },
         "data_description": {
           "house_power": "Optional, only as a check."
+        }
+      },
+      "auto_update": {
+        "title": "Automatic updates",
+        "description": "When a new version of Mijn Energie is available, the integration installs it at night around 03:00 via HACS and restarts Home Assistant. Turn this off if the customer uses Home Assistant themselves and does not want that.",
+        "data": {
+          "auto_update": "Automatic updates"
+        },
+        "data_description": {
+          "auto_update": "Recommended: on."
         }
       }
     },

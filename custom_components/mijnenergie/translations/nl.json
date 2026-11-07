@@ -172,7 +172,8 @@
         "description": "De sensorkeuze wordt ook in het portaal beheerd (nu versie {rev}). Wijzig je hier iets, dan gaat dat binnen een minuut naar het portaal.",
         "menu_options": {
           "installation": "Installatie en sensoren",
-          "relink": "Opnieuw koppelen (nieuwe koppelcode)"
+          "relink": "Opnieuw koppelen (nieuwe koppelcode)",
+          "auto_update": "Automatisch bijwerken"
         }
       },
       "installation": {
@@ -278,6 +279,16 @@
         },
         "data_description": {
           "house_power": "Optioneel, alleen ter controle."
+        }
+      },
+      "auto_update": {
+        "title": "Automatisch bijwerken",
+        "description": "Is er een nieuwe versie van Mijn Energie, dan installeert de integratie die 's nachts rond 03:00 via HACS en herstart Home Assistant. Gebruikt de klant Home Assistant zelf ook en wil je dat niet, zet het dan uit.",
+        "data": {
+          "auto_update": "Automatisch bijwerken"
+        },
+        "data_description": {
+          "auto_update": "Aanbevolen: aan."
         }
       }
     },

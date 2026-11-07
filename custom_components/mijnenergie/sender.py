@@ -26,7 +26,9 @@ from homeassistant.util import dt as dt_util
 
 from .api import CannotConnect, InvalidAuth, MijnEnergieApi
 from .const import (
+    AUTO_UPDATE_HOUR,
     BATCH_SIZE,
+    CONF_AUTO_UPDATE,
     CONF_CONFIG,
     CONF_CONFIG_DIRTY,
     CONF_CONFIG_REV,
@@ -35,6 +37,7 @@ from .const import (
     MISSING_ENTITY_GRACE_SECONDS,
     OFFLINE_ISSUE_AFTER_SECONDS,
     QUEUE_MAX,
+    REPO_SLUG,
     SAVE_DELAY_SECONDS,
     STATUS_AUTH_FAILED,
     STATUS_CONNECTED,
@@ -43,7 +46,7 @@ from .const import (
     STORAGE_VERSION,
     signal_update,
 )
-from .measure import FACTORS, build_measurement, config_entities, config_meters, normalize_config
+from .measure import FACTORS, build_measurement, collect_raw, config_entities, config_meters, normalize_config
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,6 +77,8 @@ class MijnEnergieSender:
         self.offline_since: datetime | None = None
         self.last_measurement: dict[str, Any] | None = None
         self.last_inventory: datetime | None = None
+        self.last_computed: dict[str, Any] | None = None
+        self.last_update: str | None = None
         self._store = queue_store(hass, entry.entry_id)
         self._lock = asyncio.Lock()
         self._unsub: list[CALLBACK_TYPE] = []
@@ -93,6 +98,9 @@ class MijnEnergieSender:
         # Sensorlijst: kort na het starten (als alle integraties geladen zijn) en daarna elke 10 minuten
         self._unsub.append(async_call_later(self.hass, 30, self._inventory_tick))
         self._unsub.append(async_track_time_interval(self.hass, self._inventory_tick, timedelta(seconds=INVENTORY_INTERVAL_SECONDS)))
+        # Automatisch bijwerken: elke nacht om 03:xx (minuut verschilt per HA Green, zodat niet alles tegelijk herstart)
+        minute = sum(map(ord, self.entry.entry_id)) % 30
+        self._unsub.append(async_track_time_change(self.hass, self._auto_update_tick, hour=AUTO_UPDATE_HOUR, minute=minute, second=30))
 
     async def async_stop(self) -> None:
         """Timers stoppen en de wachtrij direct opslaan."""
@@ -148,7 +156,7 @@ class MijnEnergieSender:
     # ---------- meten ----------
 
     def measure(self, when: datetime) -> dict[str, Any]:
-        """Lees de gekozen sensoren en bouw een meting."""
+        """Lees de gekozen sensoren. Het portaal rekent met de ruwe waarden; lokaal rekenen we alleen voor de diagnose."""
         cfg = self.config
         for field, entity_id in config_entities(cfg):
             self._track_missing(field, entity_id, self.hass.states.get(entity_id) is None, when)
@@ -157,7 +165,8 @@ class MijnEnergieSender:
             st = self.hass.states.get(entity_id)
             return None if st is None else (st.state, st.attributes.get(ATTR_UNIT_OF_MEASUREMENT))
 
-        return build_measurement(when, cfg, get_state)
+        self.last_computed = build_measurement(when, cfg, get_state)
+        return {"ts": when.isoformat(timespec="seconds"), "raw": collect_raw(cfg, get_state)}
 
     def _track_missing(self, field: str, entity_id: str, missing: bool, when: datetime) -> None:
         """Melding als een gekozen sensor langer dan 10 minuten niet bestaat."""
@@ -207,6 +216,7 @@ class MijnEnergieSender:
                     "queue": len(self.queue) - len(batch),
                     "meters": self.meters,
                     "config_rev": self.config_rev,
+                    **self.update_status(),
                 }
                 try:
                     result = await self.api.send(batch, meta)
@@ -236,6 +246,62 @@ class MijnEnergieSender:
                 except CannotConnect as err:
                     _LOGGER.debug("Sensorkeuze synchroniseren lukt nu niet: %s", err)
         async_dispatcher_send(self.hass, signal_update(self.entry.entry_id))
+
+    # ---------- automatisch bijwerken ----------
+
+    @property
+    def auto_update(self) -> bool:
+        return bool(self.entry.options.get(CONF_AUTO_UPDATE, True))
+
+    def find_update_entity(self) -> str | None:
+        """Update-entiteit van HACS voor deze integratie (of None als HACS er niet is)."""
+        ent_reg = er.async_get(self.hass)
+        for st in self.hass.states.async_all("update"):
+            reg = ent_reg.async_get(st.entity_id)
+            if reg is None or reg.platform != "hacs":
+                continue
+            text = " ".join(str(st.attributes.get(k) or "") for k in ("release_url", "title", "friendly_name")).lower()
+            if REPO_SLUG in text or "mijn energie" in text:
+                return st.entity_id
+        return None
+
+    def update_status(self) -> dict[str, Any]:
+        """Voor het beheer: staat automatisch bijwerken aan, is er een update, is HACS er?"""
+        entity_id = self.find_update_entity()
+        st = self.hass.states.get(entity_id) if entity_id else None
+        available = st.attributes.get("latest_version") if st is not None and st.state == "on" else None
+        return {"auto_update": self.auto_update, "update_available": available, "hacs": entity_id is not None,
+                "last_update": self.last_update}
+
+    @callback
+    def _auto_update_tick(self, now: datetime | None = None) -> None:
+        self.entry.async_create_background_task(self.hass, self.async_auto_update(), f"{DOMAIN}_auto_update")
+
+    async def async_auto_update(self) -> bool:
+        """Nieuwe versie installeren via HACS en Home Assistant herstarten. True als er is bijgewerkt."""
+        if not self.auto_update:
+            return False
+        entity_id = self.find_update_entity()
+        st = self.hass.states.get(entity_id) if entity_id else None
+        if st is None or st.state != "on":
+            return False
+        version = st.attributes.get("latest_version")
+        _LOGGER.warning("Mijn Energie: versie %s wordt automatisch geïnstalleerd; Home Assistant herstart daarna", version)
+        self._logbook(f"Versie {version} wordt automatisch geïnstalleerd; Home Assistant herstart daarna.")
+        await self.async_stop_queue_save()
+        try:
+            await self.hass.services.async_call("update", "install", {"entity_id": entity_id}, blocking=True)
+        except Exception as err:  # noqa: BLE001 - nooit de integratie laten crashen
+            _LOGGER.error("Mijn Energie: automatisch bijwerken mislukt: %s", err)
+            self._logbook(f"Automatisch bijwerken naar {version} is mislukt: {err}")
+            return False
+        self.last_update = f"{version} op {dt_util.now().strftime('%d-%m %H:%M')}"
+        await self.hass.services.async_call("homeassistant", "restart", {}, blocking=False)
+        return True
+
+    async def async_stop_queue_save(self) -> None:
+        """Wachtrij nu opslaan (vóór een herstart)."""
+        await self._store.async_save(self._data_to_save())
 
     # ---------- sensorlijst ----------
 

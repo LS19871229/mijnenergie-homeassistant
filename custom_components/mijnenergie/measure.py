@@ -157,23 +157,41 @@ def config_from_v1(options: Mapping[str, Any], home_mode: str = "pv") -> dict[st
     return normalize_config(raw)
 
 
-def config_entities(cfg: Mapping[str, Any]) -> list[tuple[str, str]]:
-    """Alle gekozen sensoren als (veld, entity_id), bijv. ("pv.0.power", "sensor.x")."""
+def config_entities(cfg: Any, prefix: str = "") -> list[tuple[str, str]]:
+    """Alle sensoren in de configuratie als (veld, entity_id), bijv. ("pv.0.power", "sensor.x").
+
+    Zoekt de hele configuratie door: velden die het portaal later toevoegt, worden zo vanzelf meegelezen.
+    """
     out: list[tuple[str, str]] = []
-    for key in ("power", "import", "export", "gas"):
-        if cfg["p1"].get(key):
-            out.append((f"p1.{key}", cfg["p1"][key]))
-    for i, src in enumerate(cfg["pv"]):
-        for key in ("power", "energy"):
-            if src.get(key):
-                out.append((f"pv.{i}.{key}", src[key]))
-    for i, src in enumerate(cfg["battery"]):
-        for key in ("power", "soc", "charge", "discharge"):
-            if src.get(key):
-                out.append((f"battery.{i}.{key}", src[key]))
-    if cfg["house"].get("power"):
-        out.append(("house.power", cfg["house"]["power"]))
+    if isinstance(cfg, Mapping):
+        for key, value in cfg.items():
+            out += config_entities(value, f"{prefix}{key}.")
+    elif isinstance(cfg, list):
+        for i, value in enumerate(cfg):
+            out += config_entities(value, f"{prefix}{i}.")
+    elif isinstance(cfg, str) and ENTITY_RE.match(cfg):
+        out.append((prefix[:-1], cfg))
     return out
+
+
+def build_from_raw(cfg: Mapping[str, Any], m: Mapping[str, Any]) -> dict[str, Any]:
+    """Meting uit een ruwe meting {"ts", "raw"} (zoals het portaal rekent; voor tests en diagnose)."""
+    raw = m.get("raw") or {}
+
+    def get_state(entity_id: str) -> tuple[Any, str | None] | None:
+        v = raw.get(entity_id)
+        return None if v is None else (v[0], v[1])
+
+    return build_measurement(datetime.fromisoformat(m["ts"]), cfg, get_state)
+
+
+def collect_raw(cfg: Mapping[str, Any], get_state: StateGetter) -> dict[str, list[Any]]:
+    """Ruwe waarden [toestand, eenheid] van alle gekozen sensoren. Het portaal rekent hiermee (v1.3+)."""
+    raw: dict[str, list[Any]] = {}
+    for _, entity_id in config_entities(cfg):
+        got = get_state(entity_id)
+        raw[entity_id] = [None, None] if got is None else [None if got[0] is None else str(got[0]), got[1]]
+    return raw
 
 
 def rename_entity(cfg: Mapping[str, Any], old: str, new: str) -> dict[str, Any] | None:

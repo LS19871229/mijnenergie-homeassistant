@@ -11,6 +11,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.mijnenergie.api import CannotConnect, InvalidCode, TooManyAttempts
+from custom_components.mijnenergie.measure import build_from_raw
 from custom_components.mijnenergie.const import CONF_CONFIG, CONF_CONFIG_DIRTY, CONF_CONFIG_REV, CONF_TOKEN, DOMAIN
 
 from .conftest import API, CONFIG_INVERTER, ENTRY_DATA, ENTRY_OPTIONS, PAIR_OK
@@ -71,7 +72,7 @@ async def test_inverter_flow(hass: HomeAssistant, meters: dict[str, str]) -> Non
     assert cfg["pv"] == [{"label": "", "power": meters["pv_power"], "energy": meters["pv_energy"]}]
     assert result["options"][CONF_CONFIG_REV] == 7 and result["options"][CONF_CONFIG_DIRTY] is False
     assert push.await_args.args[0]["p1"]["power"] == meters["p1_power"]
-    assert send.await_args.args[0][0]["power"]["pv_w"] == 1240.0
+    assert build_from_raw(cfg, send.await_args.args[0][0])["power"]["pv_w"] == 1240.0
     await hass.config_entries.async_unload(hass.config_entries.async_entries(DOMAIN)[0].entry_id)
 
 
@@ -102,9 +103,10 @@ async def test_hybrid_flow_suggests_pv_input_not_output(hass: HomeAssistant, hyb
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {"house_power": hybrid["house"]})
         assert result["step_id"] == "finish"
         test_m = send.await_args.args[0][0]
-        assert test_m["power"]["pv_w"] == 3200.0 and test_m["power"]["house_w"] == 1010.0
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
         await hass.async_block_till_done()
+    test_m = build_from_raw(result["options"][CONF_CONFIG], test_m)
+    assert test_m["power"]["pv_w"] == 3200.0 and test_m["power"]["house_w"] == 1010.0
     cfg = result["options"][CONF_CONFIG]
     assert cfg["battery"][0]["capacity"] == 10.0 and cfg["battery"][0]["charge"] == hybrid["bat_charge"]
     assert cfg["house"]["power"] == hybrid["house"]
@@ -279,10 +281,11 @@ async def test_goodwe_suggestions_and_signs(hass: HomeAssistant, goodwe: dict[st
     send = AsyncMock(return_value={"ok": True, "config_rev": 0})
     with patch(f"{API}.send", send), patch(f"{API}.push_config", AsyncMock(return_value=1)), patch(f"{API}.send_inventory", AsyncMock(return_value=1)):
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {"house_power": goodwe["house"]})
-        p = send.await_args.args[0][0]["power"]
-        assert p["net_w"] == 173.0 and p["battery_w"] == -51.0  # afname positief, ontladen negatief
-        assert p["net_w"] + p["pv_w"] - p["battery_w"] == 317.0  # klopt met de huissensor (318 W)
+        raw_m = send.await_args.args[0][0]
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
         await hass.async_block_till_done()
+    p = build_from_raw(result["options"][CONF_CONFIG], raw_m)["power"]
+    assert p["net_w"] == 173.0 and p["battery_w"] == -51.0  # afname positief, ontladen negatief
+    assert p["net_w"] + p["pv_w"] - p["battery_w"] == 317.0  # klopt met de huissensor (318 W)
     assert result["options"][CONF_CONFIG]["p1"]["invert"] is True
     await hass.config_entries.async_unload(hass.config_entries.async_entries(DOMAIN)[0].entry_id)

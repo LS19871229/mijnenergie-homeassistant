@@ -38,5 +38,7 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: MijnEne
         "queue_length": len(sender.queue),
         "oldest_in_queue": sender.queue[0]["ts"] if sender.queue else None,
         "last_measurement": sender.last_measurement,
+        "last_computed": sender.last_computed,
+        "update": sender.update_status(),
         "sensors": sensors,
     }

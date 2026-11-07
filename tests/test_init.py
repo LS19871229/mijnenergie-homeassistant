@@ -15,6 +15,7 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry, async_fire_time_changed
 
 from custom_components.mijnenergie.api import CannotConnect, InvalidAuth
+from custom_components.mijnenergie.measure import build_from_raw
 from custom_components.mijnenergie.const import CONF_CONFIG, CONF_CONFIG_DIRTY, CONF_CONFIG_REV, DOMAIN
 
 from .conftest import API, CONFIG_INVERTER, ENTRY_DATA, ENTRY_OPTIONS
@@ -47,7 +48,9 @@ async def test_first_measurement_after_start(hass: HomeAssistant, meters: dict[s
         async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=6))
         await hass.async_block_till_done()
     measurements, meta = send.await_args.args
-    m = measurements[0]
+    assert set(measurements[0]) == {"ts", "raw"}  # alleen ruwe waarden; het portaal rekent
+    assert measurements[0]["raw"][meters["p1_power"]][0] is not None
+    m = build_from_raw(entry.options[CONF_CONFIG], measurements[0])
     assert m["power"]["net_w"] == -720.0 and m["power"]["pv_w"] == 1240.0 and m["power"]["battery_w"] is None
     assert m["energy"]["pv_kwh"] == 9876.3 and m["energy"]["gas_m3"] == 1532.118
     assert meta["meters"] == ["p1", "gas", "pv"] and meta["config_rev"] == 3 and meta["integration_version"] == MANIFEST_VERSION
@@ -123,6 +126,7 @@ async def test_portal_config_is_applied(hass: HomeAssistant, hybrid: dict[str, s
     with patch(f"{API}.send", send), patch(f"{API}.push_config", AsyncMock()) as push:
         await sender.async_tick()
     m, meta = send.await_args.args
+    m = [build_from_raw(entry.options[CONF_CONFIG], x) for x in m]
     assert m[-1]["power"]["pv_w"] == 3200.0 and m[-1]["power"]["battery_w"] == 1500.0 and m[-1]["battery_soc"] == 55
     assert meta["config_rev"] == 4 and meta["meters"] == ["p1", "gas", "pv", "battery"]
     push.assert_not_awaited()  # niets terug te sturen
@@ -225,3 +229,45 @@ async def test_diagnostics_hide_token(hass: HomeAssistant, meters: dict[str, str
     assert diag["entry"]["data"]["token"] == "**REDACTED**" and "ep_testtoken" not in str(diag)
     assert diag["sensors"]["pv.0.power"]["unit"] == "kW" and diag["config_rev"] == 3
     await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_auto_update_installs_and_restarts(hass: HomeAssistant) -> None:
+    """'s Nachts: HACS-update installeren en Home Assistant herstarten; uit = niets doen."""
+    from pytest_homeassistant_custom_component.common import async_mock_service
+
+    entry = await _setup(hass)
+    sender = entry.runtime_data
+    reg = er.async_get(hass).async_get_or_create("update", "hacs", "123", suggested_object_id="mijn_energie_update")
+    hass.states.async_set(reg.entity_id, "on", {"latest_version": "1.3.1", "installed_version": "1.3.0",
+                                                 "release_url": "https://github.com/LS19871229/mijnenergie-homeassistant/releases/1.3.1"})
+    other = er.async_get(hass).async_get_or_create("update", "hacs", "456", suggested_object_id="iets_anders")
+    hass.states.async_set(other.entity_id, "on", {"latest_version": "9.9", "release_url": "https://github.com/x/iets"})
+    install = async_mock_service(hass, "update", "install")
+    restart = async_mock_service(hass, "homeassistant", "restart")
+    assert sender.find_update_entity() == reg.entity_id
+    status = sender.update_status()
+    assert status["auto_update"] is True and status["update_available"] == "1.3.1" and status["hacs"] is True
+
+    assert await sender.async_auto_update() is True
+    await hass.async_block_till_done()
+    assert [c.data["entity_id"] for c in install] == [reg.entity_id] and len(restart) == 1
+
+    hass.config_entries.async_update_entry(entry, options={**entry.options, "auto_update": False})
+    await hass.async_block_till_done()
+    assert await sender.async_auto_update() is False and len(install) == 1
+
+    hass.config_entries.async_update_entry(entry, options={**entry.options, "auto_update": True})
+    hass.states.async_set(reg.entity_id, "off", {"latest_version": "1.3.1"})
+    assert await sender.async_auto_update() is False
+    await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_raw_covers_all_config_entities(hass: HomeAssistant) -> None:
+    """Ook velden die het portaal later toevoegt, worden meegelezen (generiek zoeken)."""
+    from custom_components.mijnenergie.measure import collect_raw, config_entities
+
+    cfg = {"p1": {"power": "sensor.a", "invert": True}, "pv": [{"power": "sensor.b"}], "nieuw": {"x": "sensor.c"}, "label": "geen sensor"}
+    assert [e for _, e in config_entities(cfg)] == ["sensor.a", "sensor.b", "sensor.c"]
+    states = {"sensor.a": ("-5", "W"), "sensor.b": ("1.2", "kW")}
+    raw = collect_raw(cfg, states.get)
+    assert raw == {"sensor.a": ["-5", "W"], "sensor.b": ["1.2", "kW"], "sensor.c": [None, None]}

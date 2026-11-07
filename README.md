@@ -43,6 +43,14 @@ De laatste wijziging wint; in het portaal kun je elke vorige versie terugzetten.
 
 Bijwerken vanaf 1.0: de bestaande keuze wordt automatisch omgezet en naar het portaal gestuurd.
 
+### Automatisch bijwerken (vanaf 1.3)
+
+Vanaf versie 1.3 stuurt de HA Green alleen de ruwe sensorwaarden. Het portaal rekent alles uit: eenheden, tekens omdraaien en optellen. Verbeteringen komen daardoor vrijwel altijd alleen in het portaal, en de HA Green hoeft niet bijgewerkt te worden.
+
+Komt er toch een nieuwe versie, dan installeert de integratie die 's nachts rond 03:00 via HACS en herstart Home Assistant. Dit staat standaard aan. Uitzetten kan via **Configureren → Automatisch bijwerken**. Het beheer van het portaal laat per woning zien of er een update klaarstaat.
+
+Van 1.2 of ouder naar 1.3 werk je één keer met de hand bij (HACS → Mijn Energie → Bijwerken, daarna herstarten).
+
 ## Wat je ziet in Home Assistant
 
 Een apparaat "Mijn Energie · *woning*" met vier diagnosesensoren:

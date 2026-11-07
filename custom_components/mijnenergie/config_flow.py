@@ -23,6 +23,7 @@ from homeassistant.util import dt as dt_util
 
 from .api import CannotConnect, InvalidAuth, InvalidCode, MijnEnergieApi, TooManyAttempts, normalize_url
 from .const import (
+    CONF_AUTO_UPDATE,
     CONF_CODE,
     CONF_CONFIG,
     CONF_CONFIG_DIRTY,
@@ -43,7 +44,7 @@ from .const import (
     WITH_BATTERY,
 )
 from .detect import default_invert, suggest_battery, suggest_house, suggest_p1, suggest_pv
-from .measure import build_measurement, config_entities, config_meters, empty_config, normalize_config, unit_supported
+from .measure import collect_raw, config_entities, config_meters, empty_config, normalize_config, unit_supported
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -93,11 +94,12 @@ def _validate(hass: HomeAssistant, user_input: Mapping[str, Any], specs: list[tu
 
 
 def _test_measurement(hass: HomeAssistant, cfg: dict[str, Any]) -> dict[str, Any]:
+    """Testmeting: ruwe waarden (het portaal rekent)."""
     def get_state(entity_id: str) -> tuple[Any, str | None] | None:
         st = hass.states.get(entity_id)
         return None if st is None else (st.state, st.attributes.get(ATTR_UNIT_OF_MEASUREMENT))
 
-    return build_measurement(dt_util.now().replace(microsecond=0), cfg, get_state)
+    return {"ts": dt_util.now().replace(microsecond=0).isoformat(timespec="seconds"), "raw": collect_raw(cfg, get_state)}
 
 
 class SensorStepsMixin:
@@ -459,13 +461,19 @@ class MijnEnergieOptionsFlow(SensorStepsMixin, OptionsFlow):
         self._cfg = normalize_config(self.config_entry.options.get(CONF_CONFIG))
         self._first_time = False
         return self.async_show_menu(
-            step_id="init", menu_options=["installation", "relink"],
+            step_id="init", menu_options=["installation", "auto_update", "relink"],
             description_placeholders={"rev": str(self.config_entry.options.get(CONF_CONFIG_REV) or 0)},
         )
 
     async def _async_sensors_done(self) -> ConfigFlowResult:
         # Wordt binnen een minuut naar het portaal gestuurd (CONF_CONFIG_DIRTY)
         return self.async_create_entry(data={**self.config_entry.options, CONF_CONFIG: normalize_config(self._cfg), CONF_CONFIG_DIRTY: True})
+
+    async def async_step_auto_update(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        if user_input is not None:
+            return self.async_create_entry(data={**self.config_entry.options, CONF_AUTO_UPDATE: bool(user_input.get(CONF_AUTO_UPDATE))})
+        return self.async_show_form(step_id="auto_update", data_schema=vol.Schema({
+            vol.Required(CONF_AUTO_UPDATE, default=bool(self.config_entry.options.get(CONF_AUTO_UPDATE, True))): selector.BooleanSelector()}))
 
     async def async_step_relink(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         self.config_entry.async_start_reauth(self.hass)
