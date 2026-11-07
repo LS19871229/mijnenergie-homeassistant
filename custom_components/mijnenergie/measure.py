@@ -133,7 +133,38 @@ def normalize_config(raw: Any) -> dict[str, Any]:
         cfg["pv"], cfg["battery"], cfg["house"]["power"] = [], [], ""
     elif cfg["installation"] == INST_INVERTER:
         cfg["battery"] = []
+    # Onderdelen die deze versie nog niet kent (bijv. laadpaal of warmtepomp uit het portaal) blijven bewaard,
+    # zodat ze worden meegelezen en niet verloren gaan bij terugsturen. Het portaal rekent ermee.
+    for key, value in raw.items():
+        if key not in cfg and isinstance(key, str) and _KEY_RE.match(key):
+            kept = _keep_unknown(value)
+            if kept is not None:
+                cfg[key] = kept
     return cfg
+
+
+_KEY_RE = re.compile(r"^[a-z][a-z0-9_]{0,30}$")
+
+
+def _keep_unknown(value: Any, depth: int = 0) -> Any:
+    """Onbekend deel van de configuratie veilig overnemen (alleen JSON-waarden, beperkt in grootte)."""
+    if depth > 4:
+        return None
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    if isinstance(value, str):
+        return value[:250]
+    if isinstance(value, list):
+        return [v for v in (_keep_unknown(x, depth + 1) for x in value[:20]) if v is not None]
+    if isinstance(value, Mapping):
+        out = {}
+        for k, v in list(value.items())[:30]:
+            if isinstance(k, str) and _KEY_RE.match(k):
+                kept = _keep_unknown(v, depth + 1)
+                if kept is not None:
+                    out[k] = kept
+        return out
+    return None
 
 
 def config_from_v1(options: Mapping[str, Any], home_mode: str = "pv") -> dict[str, Any]:

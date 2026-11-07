@@ -123,3 +123,21 @@ def test_p1_invert() -> None:
     m = build_measurement(WHEN, cfg, getter({"sensor.net": ("-173", "W")}))
     assert m["power"]["net_w"] == 173.0
     assert normalize_config({"p1": {"invert": "0"}})["p1"]["invert"] is False
+
+
+def test_unknown_parts_are_kept_and_read() -> None:
+    """Nieuwe onderdelen uit het portaal (laadpaal, warmtepomp) blijven bewaard en worden meegelezen."""
+    from custom_components.mijnenergie.measure import collect_raw, config_entities, normalize_config
+
+    raw = {"installation": "inverter", "p1": {"power": "sensor.p1"},
+           "loads": [{"type": "ev", "label": "Laadpaal", "power": "sensor.laadpaal_vermogen"},
+                     {"type": "heatpump", "label": "", "power": "sensor.wp_vermogen", "x": {"y": object()}}],
+           "Bad-Key": "sensor.nee", "toekomst": {"n": 1.5, "lijst": [True, None, "sensor.iets"]}}
+    cfg = normalize_config(raw)
+    assert cfg["loads"][0] == {"type": "ev", "label": "Laadpaal", "power": "sensor.laadpaal_vermogen"}
+    assert cfg["loads"][1]["x"] == {}  # geen JSON-waarde: weggelaten
+    assert "Bad-Key" not in cfg and cfg["toekomst"] == {"n": 1.5, "lijst": [True, "sensor.iets"]}
+    ids = [e for _, e in config_entities(cfg)]
+    assert "sensor.laadpaal_vermogen" in ids and "sensor.wp_vermogen" in ids and "sensor.iets" in ids
+    assert set(collect_raw(cfg, {"sensor.laadpaal_vermogen": ("7.4", "kW")}.get)) >= {"sensor.laadpaal_vermogen", "sensor.wp_vermogen"}
+    assert normalize_config(cfg) == cfg  # stabiel bij opnieuw normaliseren
